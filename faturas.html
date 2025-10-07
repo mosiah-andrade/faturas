@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Faturas do Cliente</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; background-color: #f8f9fa; margin: 20px; }
+        .container { background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); width: 100%; max-width: 900px; box-sizing: border-box; }
+        .cliente-header { text-align: center; border-bottom: 1px solid #dee2e6; padding-bottom: 20px; margin-bottom: 20px; }
+        h1 { color: #212529; margin: 0; }
+        h2 { text-align: center; color: #343a40; }
+        .cliente-doc { color: #6c757d; font-size: 16px; }
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .action-btn { background-color: #007bff; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 16px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #dee2e6; }
+        th { background-color: #f8f9fa; font-weight: 600; }
+        select.status-select { padding: 5px; border-radius: 6px; border: 1px solid #ced4da; font-weight: 600; }
+        .status-paga { background-color: #d1e7dd; color: #0f5132; }
+        .status-pendente { background-color: #fff3cd; color: #664d03; }
+        .status-vencida { background-color: #f8d7da; color: #842029; }
+        .status-cancelada { background-color: #e2e3e5; color: #41464b; }
+        .pdf-btn { background-color: #dc3545; color: white; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .error-message, .no-data { padding: 15px; border-radius: 6px; text-align: center; }
+        .back-link { display: block; text-align: center; margin-top: 30px; color: #ff9900; font-weight: 600; text-decoration: none; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
+        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 30px; border-radius: 12px; max-width: 500px; position: relative; }
+        .close-btn { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .form-group { margin-bottom: 15px; } label { display: block; margin-bottom: 5px; font-weight: 600; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 6px; }
+        #message-modal { margin-top: 15px; padding: 10px; border-radius: 6px; text-align: center; display: none; }
+        .success { background-color: #d1e7dd; color: #0f5132; display: block; } .error { background-color: #f8d7da; color: #842029; display: block; }
+        #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: #28a745; color: white; padding: 15px; border-radius: 8px; z-index: 1001; opacity: 0; transition: opacity 0.5s; }
+    </style>
+</head>
+<body>
+    <div class="container" id="main-container"><p>Carregando...</p></div>
+    <div id="toast"></div>
+
+    <div id="faturaModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <h2>Gerar Nova Fatura</h2>
+            <form id="faturaForm">
+                 <div class="form-group"><label for="instalacao_id_modal">Selecione a Instalação:</label><select id="instalacao_id_modal" required></select></div>
+                <div class="form-group"><label for="mes_referencia">Mês de Referência:</label><input type="month" id="mes_referencia" required></div>
+                <div class="form-group"><label for="consumo_kwh">Consumo (kWh):</label><input type="number" step="0.01" id="consumo_kwh" required></div>
+                <div class="form-group"><label for="injecao_kwh">Injeção (kWh):</label><input type="number" step="0.01" id="injecao_kwh" required></div>
+                <button type="submit" id="submitFaturaBtn" class="action-btn">Salvar Fatura</button>
+                <div id="message-modal"></div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_GET_FATURAS = 'api/get_faturas.php';
+        const API_GET_INSTALACOES = 'api/get_instalacoes_por_cliente.php';
+        const API_GERAR_FATURA = 'api/gerar_fatura.php';
+        const API_UPDATE_STATUS = 'api/atualizar_status_fatura.php';
+        const API_GET_DETALHES_FATURA = 'api/get_detalhes_fatura.php';
+
+        const container = document.getElementById('main-container');
+        const modal = document.getElementById('faturaModal');
+        const closeModalBtn = modal.querySelector('.close-btn');
+
+        function getQueryParam(param) { return new URLSearchParams(window.location.search).get(param); }
+        function formatDate(d) { 
+            if (!d) return '';
+            const [y, m, day] = d.split('-'); 
+            return `${day}/${m}/${y}`; 
+        }
+        function formatCurrency(v) { 
+            return parseFloat(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 2 }); 
+        }
+        function formatKwh(v) {
+            return parseFloat(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.backgroundColor = isError ? '#dc3545' : '#28a745';
+            toast.style.opacity = 1;
+            setTimeout(() => { toast.style.opacity = 0; }, 3000);
+        }
+
+        async function changeStatus(selectElement, faturaId) {
+            try {
+                const response = await fetch(API_UPDATE_STATUS, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fatura_id: faturaId, status: selectElement.value })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message);
+                selectElement.className = `status-select status-${selectElement.value}`;
+                showToast(result.message);
+            } catch (error) {
+                showToast(`Erro: ${error.message}`, true);
+            }
+        }
+
+        async function exportarFaturaPDF(faturaId) {
+            try {
+                const response = await fetch(`${API_GET_DETALHES_FATURA}?fatura_id=${faturaId}`);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message);
+
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const page_width = doc.internal.pageSize.getWidth();
+                const margin = 14;
+
+                // --- INÍCIO DA CORREÇÃO DE DESIGN ---
+
+                // Cabeçalho Principal
+                doc.setFontSize(20);
+                doc.text("Fatura de Energia Solar", page_width / 2, 22, { align: 'center' });
+
+                // Bloco da Esquerda (Cliente)
+                doc.setFontSize(11);
+                doc.setFont(undefined, 'bold');
+                doc.text("CLIENTE:", margin, 40);
+                doc.setFont(undefined, 'normal');
+                doc.text(data.fatura.cliente_nome, margin, 46);
+                doc.text(`CPF/CNPJ: ${data.fatura.cliente_documento}`, margin, 52);
+                doc.text(`UC: ${data.fatura.codigo_uc}`, margin, 58);
+
+                // Bloco da Direita (Fatura) - Layout em Colunas
+                const rightColTitlesX = 140; // Posição dos títulos da direita
+                const rightColValuesX = 175; // Posição dos valores da direita
+                
+                doc.setFont(undefined, 'bold');
+                doc.text("Nº FATURA:", rightColTitlesX, 40);
+                doc.text("MÊS REFERÊNCIA:", rightColTitlesX, 46);
+                doc.text("VENCIMENTO:", rightColTitlesX, 52);
+                
+                doc.setFont(undefined, 'normal');
+                doc.text(String(data.fatura.id), rightColValuesX, 40);
+                doc.text(formatDate(data.fatura.mes_referencia), rightColValuesX, 46);
+                doc.text(formatDate(data.fatura.data_vencimento), rightColValuesX, 52);
+
+
+                // Tabela de Itens
+                const tableRows = data.itens.map(item => [
+                    item.descricao,
+                    item.quantidade_kwh ? formatKwh(item.quantidade_kwh) : '-',
+                    item.valor_unitario ? formatCurrency(item.valor_unitario) : '-',
+                    formatCurrency(item.valor_total_item)
+                ]);
+
+                doc.autoTable({
+                    head: [["Descrição", "Quantidade (kWh)", "Valor Unit.", "Valor Total"]],
+                    body: tableRows, 
+                    startY: 70, 
+                    theme: 'grid',
+                    headStyles: { fillColor: [0, 150, 136] },
+                    styles: { fontSize: 10 },
+                    columnStyles: {
+                        1: { halign: 'right' },
+                        2: { halign: 'right' },
+                        3: { halign: 'right' }
+                    }
+                });
+                
+                let finalY = doc.autoTable.previous.finalY;
+                
+                // Valor Total
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                const right_align_x = page_width - margin;
+                doc.text("VALOR TOTAL:", right_align_x, finalY + 15, { align: 'right' });
+                doc.text(formatCurrency(data.fatura.valor_total), right_align_x, finalY + 22, { align: 'right' });
+                
+                // Espaço para QR Code
+                doc.setFontSize(12);
+                doc.setFont(undefined, 'normal');
+                doc.text("Pague com PIX:", margin, finalY + 20);
+                doc.setLineWidth(0.5);
+                doc.rect(margin, finalY + 23, 60, 60);
+                
+                // --- FIM DA CORREÇÃO DE DESIGN ---
+                
+                doc.save(`fatura-${data.fatura.id}.pdf`);
+            } catch (error) {
+                alert(`Erro ao gerar PDF: ${error.message}`);
+            }
+        }
+
+        async function openFaturaModal() {
+            const clienteId = getQueryParam('cliente_id');
+            const instalacaoSelect = document.getElementById('instalacao_id_modal');
+            instalacaoSelect.innerHTML = '<option>Carregando...</option>';
+            try {
+                const response = await fetch(`${API_GET_INSTALACOES}?cliente_id=${clienteId}`);
+                if (!response.ok) throw new Error('Falha ao buscar instalações.');
+                const instalacoes = await response.json();
+                instalacaoSelect.innerHTML = '<option value="">-- Selecione uma instalação --</option>';
+                instalacoes.forEach(inst => instalacaoSelect.add(new Option(`UC: ${inst.codigo_uc} - ${inst.endereco_instalacao}`, inst.id)));
+            } catch (error) {
+                instalacaoSelect.innerHTML = `<option value="">${error.message}</option>`;
+            }
+            modal.style.display = 'block';
+        }
+
+        closeModalBtn.onclick = () => { modal.style.display = 'none'; };
+        window.onclick = (event) => { if (event.target == modal) { modal.style.display = 'none'; } };
+        
+        document.getElementById('faturaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('submitFaturaBtn');
+            const messageDiv = document.getElementById('message-modal');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Processando...';
+            const data = {
+                instalacao_id: document.getElementById('instalacao_id_modal').value,
+                mes_referencia: document.getElementById('mes_referencia').value,
+                consumo_kwh: document.getElementById('consumo_kwh').value,
+                injecao_kwh: document.getElementById('injecao_kwh').value,
+            };
+            try {
+                const response = await fetch(API_GERAR_FATURA, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message);
+                messageDiv.textContent = result.message;
+                messageDiv.className = 'success';
+                setTimeout(() => { modal.style.display = 'none'; location.reload(); }, 2000);
+            } catch (error) {
+                messageDiv.textContent = error.message;
+                messageDiv.className = 'error';
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Salvar Fatura';
+            }
+        });
+
+        async function carregarPagina() {
+            const clienteId = getQueryParam('cliente_id');
+            if (!clienteId) { container.innerHTML = `<div class="error-message">ID do cliente não fornecido.</div>`; return; }
+            try {
+                const response = await fetch(`${API_GET_FATURAS}?cliente_id=${clienteId}`);
+                if (!response.ok) throw new Error('Falha ao carregar dados do cliente.');
+                const data = await response.json();
+                let html = `
+                    <div class="cliente-header"><h1>${data.cliente.nome}</h1><p class="cliente-doc">Documento: ${data.cliente.documento}</p></div>
+                    <div class="header-actions"><h2>Histórico de Faturas</h2><button class="action-btn" onclick="openFaturaModal()">+ Gerar Nova Fatura</button></div>`;
+                if (data.faturas.length > 0) {
+                    html += `
+                        <table>
+                            <thead><tr><th>Mês Ref.</th><th>Vencimento</th><th>Valor</th><th>Status</th><th>Ações</th></tr></thead>
+                            <tbody>
+                                ${data.faturas.map(fatura => `
+                                    <tr>
+                                        <td>${formatDate(fatura.mes_referencia)}</td>
+                                        <td>${formatDate(fatura.data_vencimento)}</td>
+                                        <td>${formatCurrency(fatura.valor_total)}</td>
+                                        <td>
+                                            <select class="status-select status-${fatura.status}" onchange="changeStatus(this, ${fatura.id})">
+                                                <option value="pendente" ${fatura.status === 'pendente' ? 'selected' : ''}>Pendente</option>
+                                                <option value="paga" ${fatura.status === 'paga' ? 'selected' : ''}>Paga</option>
+                                                <option value="vencida" ${fatura.status === 'vencida' ? 'selected' : ''}>Vencida</option>
+                                                <option value="cancelada" ${fatura.status === 'cancelada' ? 'selected' : ''}>Cancelada</option>
+                                            </select>
+                                        </td>
+                                        <td><button class="pdf-btn" onclick="exportarFaturaPDF(${fatura.id})">Exportar PDF</button></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>`;
+                } else {
+                    html += `<p class="no-data" style="background-color:#e2e3e5;color:#41464b;">Nenhuma fatura encontrada.</p>`;
+                }
+                html += `<a href="index.html" class="back-link">&larr; Voltar ao Painel</a>`;
+                container.innerHTML = html;
+            } catch (error) {
+                container.innerHTML = `<div class="error-message">${error.message}</div>`;
+            }
+        }
+        document.addEventListener('DOMContentLoaded', carregarPagina);
+    </script>
+</body>
+</html>

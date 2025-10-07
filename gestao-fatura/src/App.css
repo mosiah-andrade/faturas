@@ -1,0 +1,28 @@
+:root{
+  --yellow: #dcdf43;
+  --blue: #031f7e;
+  box-sizing: border-box  ;
+  margin: 0;
+}
+
+
+.btn-blue{
+  background-color: var(--blue);
+  padding: 5px;
+  border-radius: 6px;
+  color: azure;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+}
+.btn-blue:hover{
+  opacity: 80%;
+  color: rgba(240, 255, 255, 0.815);
+}
+.btn-orange{
+  background-color:  #ff9900;
+}
+.btn-orange:hover{
+  opacity: 80%;
+}

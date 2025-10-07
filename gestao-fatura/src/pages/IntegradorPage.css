@@ -1,0 +1,86 @@
+.integrador-header {
+    text-align: center;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}
+
+.integrador-header h1 {
+    margin: 0;
+    color: #212529;
+}
+
+.integrador-header .contato {
+    font-size: 1.1em;
+    color: #6c757d;
+    margin-top: 5px;
+}
+
+.clientes-section h2 {
+    text-align: center;
+    color: #343a40;
+}
+
+.clientes-lista-detalhe {
+    list-style-type: none;
+    padding: 0;
+}
+
+.clientes-lista-detalhe li {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.cliente-dados {
+    flex-grow: 1;
+}
+
+.cliente-nome {
+    font-weight: 600;
+}
+
+.cliente-acoes {
+    display: flex;
+    gap: 10px;
+}
+
+.action-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.ver-faturas-btn {
+    background-color: #28a745;
+}
+
+.back-link {
+    display: block;
+    text-align: center;
+    margin-top: 30px;
+    color: #ff9900;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.error-message {
+    color: #842029;
+    background-color: #f8d7da;
+    padding: 15px;
+    border-radius: 6px;
+    text-align: center;
+}

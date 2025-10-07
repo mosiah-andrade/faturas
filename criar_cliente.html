@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homolog Solar - Gestão de Clientes e Integradores</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; background-color: #f8f9fa; margin: 20px; }
+        .container { background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1); width: 100%; max-width: 700px; box-sizing: border-box; margin-bottom: 20px; }
+        h2 { text-align: center; color: #212529; margin-bottom: 25px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #495057; }
+        input[type="text"], input[type="email"], select { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; font-size: 16px; background-color: #fff; }
+        button { width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: 600; }
+        button:disabled { opacity: 0.7; cursor: not-allowed; }
+        #message { margin-top: 20px; padding: 12px; border-radius: 6px; text-align: center; display: none; }
+        .success { background-color: #d1e7dd; color: #0f5132; display: block; }
+        .error { background-color: #f8d7da; color: #842029; display: block; }
+        .form-row { display: flex; flex-wrap: wrap; gap: 20px; }
+        .form-row .form-group { flex: 1; min-width: calc(50% - 10px); }
+        #integradores-lista { list-style-type: none; padding: 0; }
+        #integradores-lista li { background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid #ff9900; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .integrador-info .nome { font-weight: 600; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Cadastro de Novo Cliente</h2>
+        <form id="clienteForm">
+            <div class="form-group">
+                <label for="integrador_id">Selecione o Integrador Responsável:</label>
+                <select id="integrador_id" required>
+                    <option value="">Carregando integradores...</option>
+                </select>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label for="nome">Nome Completo do Cliente:</label><input type="text" id="nome" required></div>
+                <div class="form-group"><label for="documento">CPF/CNPJ:</label><input type="text" id="documento" required></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group"><label for="email">Email:</label><input type="email" id="email" required></div>
+                <div class="form-group"><label for="telefone">Telefone (Opcional):</label><input type="text" id="telefone"></div>
+            </div>
+            <div class="form-group"><label for="endereco_instalacao">Endereço da Instalação:</label><input type="text" id="endereco_instalacao" required></div>
+            <div class="form-group"><label for="codigo_uc">Código da Unidade Consumidora (UC):</label><input type="text" id="codigo_uc" required></div>
+            <button type="submit" id="submitButton">Cadastrar Cliente</button>
+            <div id="message"></div>
+        </form>
+    </div>
+
+    <div class="container">
+        <h2>Integradores Cadastrados</h2>
+        <ul id="integradores-lista">
+            </ul>
+    </div>
+
+    <script>
+        const clienteForm = document.getElementById('clienteForm');
+        const submitButton = document.getElementById('submitButton');
+        const messageDiv = document.getElementById('message');
+        const integradorSelect = document.getElementById('integrador_id');
+        const integradoresListaUl = document.getElementById('integradores-lista');
+
+        const API_URL_LIST_INTEGRADORES = 'api/listar_integradores.php';
+        const API_URL_CADASTRAR_CLIENTE = 'api/cadastrar_cliente.php';
+
+        async function fetchIntegradores() {
+            try {
+                const response = await fetch(API_URL_LIST_INTEGRADORES);
+                if (!response.ok) throw new Error('Falha ao carregar integradores.');
+                const integradores = await response.json();
+
+                // Popula o menu de seleção (dropdown)
+                integradorSelect.innerHTML = '<option value="">-- Selecione um integrador --</option>';
+                integradores.forEach(integrador => {
+                    const option = new Option(`${integrador.id} - ${integrador.nome_do_integrador}`, integrador.id);
+                    integradorSelect.add(option);
+                });
+
+                // Popula a lista de navegação
+                integradoresListaUl.innerHTML = '';
+                integradores.forEach(integrador => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<div class="integrador-info"><div class="nome">${integrador.nome_do_integrador}</div></div><span>&rarr;</span>`;
+                    li.onclick = () => { window.location.href = `integrador.html?id=${integrador.id}`; };
+                    integradoresListaUl.appendChild(li);
+                });
+
+            } catch (error) {
+                integradorSelect.innerHTML = `<option value="">${error.message}</option>`;
+                integradoresListaUl.innerHTML = `<li>${error.message}</li>`;
+            }
+        }
+
+        clienteForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            submitButton.disabled = true;
+            submitButton.textContent = 'Enviando...';
+            messageDiv.className = '';
+
+            const data = {
+                integrador_id: integradorSelect.value,
+                nome: document.getElementById('nome').value,
+                documento: document.getElementById('documento').value,
+                email: document.getElementById('email').value,
+                telefone: document.getElementById('telefone').value,
+                codigo_uc: document.getElementById('codigo_uc').value,
+                endereco_instalacao: document.getElementById('endereco_instalacao').value
+            };
+
+            try {
+                const response = await fetch(API_URL_CADASTRAR_CLIENTE, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.message);
+
+                messageDiv.textContent = result.message;
+                messageDiv.className = 'success';
+                clienteForm.reset();
+            } catch (error) {
+                messageDiv.textContent = error.message;
+                messageDiv.className = 'error';
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = 'Cadastrar Cliente';
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', fetchIntegradores);
+    </script>
+
+</body>
+</html>

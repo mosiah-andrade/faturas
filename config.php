@@ -1,5 +1,5 @@
 <?php
-// Arquivo: /config.php (fora da public_html)
+// Arquivo: /config.php
 
 return [
     'db_host' => '193.203.175.197',

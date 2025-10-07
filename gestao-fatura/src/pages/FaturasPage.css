@@ -1,0 +1,87 @@
+.cliente-header {
+    text-align: center;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+.cliente-header h1 {
+    margin: 0;
+}
+.cliente-doc {
+    color: #6c757d;
+    font-size: 1em;
+}
+
+.header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.header-actions h2 {
+    margin: 0;
+    text-align: left;
+}
+
+.faturas-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.faturas-table th, .faturas-table td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.faturas-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.status-select {
+    padding: 5px 8px;
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    font-weight: 600;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-position: right 8px center;
+    background-repeat: no-repeat;
+    background-size: 10px;
+    padding-right: 25px;
+}
+
+/* Estilos de cor para o select */
+.status-paga { background-color: #d1e7dd; color: #0f5132; }
+.status-pendente { background-color: #fff3cd; color: #664d03; }
+.status-vencida { background-color: #f8d7da; color: #842029; }
+.status-cancelada { background-color: #e2e3e5; color: #41464b; }
+
+.pdf-btn {
+    background-color: #dc3545;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.no-data {
+    padding: 15px;
+    border-radius: 6px;
+    text-align: center;
+    background-color: #e2e3e5;
+    color: #41464b;
+}
+
+.back-link {
+    display: block;
+    text-align: center;
+    margin-top: 30px;
+    color: #ff9900;
+    font-weight: 600;
+    text-decoration: none;
+}

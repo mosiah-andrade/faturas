@@ -1,0 +1,36 @@
+.integradores-lista {
+    list-style-type: none;
+    padding: 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+.integradores-lista li {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 4px solid #ff9900;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.integrador-info {
+    flex-grow: 1;
+    text-decoration: none;
+    color: inherit;
+}
+.integrador-info .nome {
+    font-weight: 600;
+}
+.actions button {
+    width: auto;
+    font-size: 14px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    color: white;
+}
+.btn-red {
+    background-color: #dc3545;
+}
