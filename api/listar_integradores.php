@@ -1,58 +1,31 @@
 <?php
-// --- INÍCIO DO CÓDIGO DE DIAGNÓSTICO ---
+// faturas/api/listar_integradores.php
+
 ini_set('display_errors', 1);
 error_reporting(E_ALL);
-// --- FIM DO CÓDIGO DE DIAGNÓSTICO ---
 
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
-if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
-
-$configFile = __DIR__ . '/../config.php';
-
-if (!file_exists($configFile)) {
-    http_response_code(500);
-    echo json_encode(['message' => 'Erro crítico: O arquivo de configuração não foi encontrado no caminho esperado.']);
-    exit();
-}
-if (!is_readable($configFile)) {
-    http_response_code(500);
-    echo json_encode(['message' => 'Erro crítico: O arquivo de configuração não tem permissão de leitura.']);
-    exit();
-}
-
-$config = require $configFile;
+// Inclui a nova classe de banco de dados
+require_once 'Database.php';
 
 try {
-    $pdo = new PDO("mysql:host={$config['db_host']};dbname={$config['db_name']};charset=utf8", $config['db_user'], $config['db_pass']);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    http_response_code(500);
-    // Retorna o erro de conexão detalhado para diagnóstico
-    echo json_encode(['message' => 'Erro de conexão com o banco de dados.', 'details' => $e->getMessage()]);
-    exit();
-}
+    // Pega a instância única do banco de dados e obtém a conexão
+    $database = Database::getInstance();
+    $pdo = $database->getConnection();
 
-if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
-    http_response_code(405);
-    echo json_encode(['message' => 'Método não permitido. Utilize GET.']);
-    exit();
-}
-
-try {
+    // O resto do seu código permanece o mesmo
     $stmt = $pdo->prepare("SELECT id, nome_do_integrador, numero_de_contato FROM integradores ORDER BY id DESC");
     $stmt->execute();
     $integradores = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
     http_response_code(200);
     echo json_encode($integradores);
-} catch (PDOException $e) {
+
+} catch (Exception $e) {
+    // Captura exceções tanto da conexão quanto da consulta
     http_response_code(500);
-    echo json_encode(['message' => 'Erro ao buscar dados no DB.', 'details' => $e->getMessage()]);
+    echo json_encode(['message' => 'Erro no servidor.', 'details' => $e->getMessage()]);
 }
 ?>

@@ -85,3 +85,16 @@
     font-weight: 600;
     text-decoration: none;
 }
+.action-btn{
+    width: 250px;
+}
+.action-btn:hover{
+    opacity: 80%;
+}
+.faturaPage{
+    display: flex;
+    justify-content: center;
+    margin: auto;
+    width: 100vw;
+    height: 100vh;
+}

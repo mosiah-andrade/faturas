@@ -11,41 +11,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     exit();
 }
 
-$configFile = __DIR__ . '/../config.php';
-if (!file_exists($configFile)) {
-    http_response_code(500);
-    echo json_encode(['message' => 'Erro crítico: Arquivo de configuração não encontrado.']);
-    exit();
-}
-$config = require $configFile;
+require_once 'Database.php';
 
 try {
-    $pdo = new PDO("mysql:host={$config['db_host']};dbname={$config['db_name']};charset=utf8", $config['db_user'], $config['db_pass']);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['message' => 'Erro de conexão com o banco de dados.', 'details' => $e->getMessage()]);
-    exit();
-}
+    $database = Database::getInstance();
+    $pdo = $database->getConnection();
 
-if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
-    http_response_code(405);
-    echo json_encode(['message' => 'Método não permitido. Utilize DELETE.']);
-    exit();
-}
+    if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
+        http_response_code(405);
+        echo json_encode(['message' => 'Método não permitido. Utilize DELETE.']);
+        exit();
+    }
 
-if (empty($_GET['id'])) {
-    http_response_code(400);
-    echo json_encode(['message' => 'ID do integrador é obrigatório.']);
-    exit();
-}
+    if (empty($_GET['id'])) {
+        http_response_code(400);
+        echo json_encode(['message' => 'ID do integrador é obrigatório.']);
+        exit();
+    }
 
-$id = $_GET['id'];
-$sql = "DELETE FROM integradores WHERE id = ?";
-$stmt = $pdo->prepare($sql);
-
-try {
+    $id = $_GET['id'];
+    $sql = "DELETE FROM integradores WHERE id = ?";
+    $stmt = $pdo->prepare($sql);
+    
     $stmt->execute([$id]);
+    
     if ($stmt->rowCount() > 0) {
         http_response_code(200);
         echo json_encode(['message' => 'Integrador deletado com sucesso!']);
@@ -56,5 +45,8 @@ try {
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(['message' => 'Erro ao deletar integrador no DB.', 'details' => $e->getMessage()]);
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['message' => 'Erro no servidor.', 'details' => $e->getMessage()]);
 }
 ?>

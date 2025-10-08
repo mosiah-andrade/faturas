@@ -1,4 +1,6 @@
 <?php
+// faturas/api/integrador.php
+
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: POST, OPTIONS");
@@ -9,49 +11,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     exit();
 }
 
-$configFile = __DIR__ . '/../config.php';
-if (!file_exists($configFile)) {
-    http_response_code(500);
-    echo json_encode(['message' => 'Erro crítico: Arquivo de configuração não encontrado.']);
-    exit();
-}
-$config = require $configFile;
+require_once 'Database.php';
 
 try {
-    $pdo = new PDO("mysql:host={$config['db_host']};dbname={$config['db_name']};charset=utf8", $config['db_user'], $config['db_pass']);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['message' => 'Erro de conexão com o banco de dados.', 'details' => $e->getMessage()]);
-    exit();
-}
+    $database = Database::getInstance();
+    $pdo = $database->getConnection();
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode(['message' => 'Método não permitido. Utilize POST.']);
-    exit();
-}
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['message' => 'Método não permitido. Utilize POST.']);
+        exit();
+    }
 
-$data = json_decode(file_get_contents("php://input"));
+    $data = json_decode(file_get_contents("php://input"));
 
-if (empty($data->nome_do_integrador) || empty($data->numero_de_contato)) {
-    http_response_code(400);
-    echo json_encode(['message' => 'Nome e numero de contato são obrigatórios.']);
-    exit();
-}
+    if (empty($data->nome_do_integrador) || empty($data->numero_de_contato)) {
+        http_response_code(400);
+        echo json_encode(['message' => 'Nome e numero de contato são obrigatórios.']);
+        exit();
+    }
 
-$sql = "INSERT INTO integradores (nome_do_integrador, numero_de_contato) VALUES (?, ?)";
-$stmt = $pdo->prepare($sql);
+    $sql = "INSERT INTO integradores (nome_do_integrador, numero_de_contato) VALUES (?, ?)";
+    $stmt = $pdo->prepare($sql);
 
-try {
     $stmt->execute([$data->nome_do_integrador, $data->numero_de_contato]);
     $lastId = $pdo->lastInsertId();
+    
     http_response_code(201);
     echo json_encode([
         'id' => $lastId,
         'message' => 'Registro Integrador inserido com sucesso!'
     ]);
-} catch (PDOException $e) {
+
+} catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['message' => 'Erro interno ao inserir dados no DB.', 'details' => $e->getMessage()]);
 }

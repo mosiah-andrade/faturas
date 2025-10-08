@@ -11,27 +11,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     exit();
 }
 
-$configFile = __DIR__ . '/../config.php';
-$config = require $configFile;
-$pdo = new PDO("mysql:host={$config['db_host']};dbname={$config['db_name']};charset=utf8", $config['db_user'], $config['db_pass']);
-$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-$data = json_decode(file_get_contents("php://input"));
-
-if (empty($data->fatura_id) || empty($data->status)) {
-    http_response_code(400);
-    echo json_encode(['message' => 'ID da fatura e novo status são obrigatórios.']);
-    exit();
-}
-
-$allowed_statuses = ['pendente', 'paga', 'vencida', 'cancelada'];
-if (!in_array($data->status, $allowed_statuses)) {
-    http_response_code(400);
-    echo json_encode(['message' => 'Status inválido.']);
-    exit();
-}
+// Usa a classe de conexão centralizada
+require_once 'Database.php';
 
 try {
+    $database = Database::getInstance();
+    $pdo = $database->getConnection();
+
+    $data = json_decode(file_get_contents("php://input"));
+
+    if (empty($data->fatura_id) || empty($data->status)) {
+        http_response_code(400);
+        die(json_encode(['message' => 'ID da fatura e novo status são obrigatórios.']));
+    }
+
+    $allowed_statuses = ['pendente', 'paga', 'vencida', 'cancelada'];
+    if (!in_array($data->status, $allowed_statuses)) {
+        http_response_code(400);
+        die(json_encode(['message' => 'Status inválido.']));
+    }
+
     $stmt = $pdo->prepare("UPDATE faturas SET status = ? WHERE id = ?");
     $stmt->execute([$data->status, $data->fatura_id]);
 
@@ -40,6 +39,7 @@ try {
 
 } catch (Exception $e) {
     http_response_code(500);
+    // Agora envia uma mensagem mais detalhada para o frontend em caso de erro
     echo json_encode(['message' => 'Erro ao atualizar o status.', 'details' => $e->getMessage()]);
 }
 ?>

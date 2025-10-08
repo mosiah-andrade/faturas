@@ -54,30 +54,33 @@ const PainelPrincipal = () => {
     return (
         <>
             <section>
-                <FaturaModal 
-                    isOpen={isFaturaModalOpen} 
-                    onClose={() => setFaturaModalOpen(false)} 
-                />  
-                <Container title="Ações Rápidas">
-                    <Link className="action-link btn-blue" onClick={() => setFaturaModalOpen(true)}>Gerar Nova Fatura</Link>
-                </Container>
-
-                {/* Aqui você adicionaria os formulários de cadastro como componentes */}
-                <Container title="Cadastrar Novo Cliente">
-                    <ClienteForm integradores={integradores} />
-                </Container>
+                <div>
+                    <FaturaModal 
+                        isOpen={isFaturaModalOpen} 
+                        onClose={() => setFaturaModalOpen(false)} 
+                    />  
+                    <Container title="Ações Rápidas">
+                        <Link className="action-link btn-blue" onClick={() => setFaturaModalOpen(true)}>Gerar Nova Fatura</Link>
+                    </Container>
                 
-                <Container title="Cadastrar Novo Integrador">
-                    <IntegradorForm onCadastro={fetchIntegradores} />
-                </Container>
+                    {/* Aqui você adicionaria os formulários de cadastro como componentes */}
+                    <Container title="Cadastrar Novo Cliente">
+                        <ClienteForm integradores={integradores} />
+                    </Container>
+                </div>
+                <div>
+                    <Container title="Cadastrar Novo Integrador">
+                        <IntegradorForm onCadastro={fetchIntegradores} />
+                    </Container>
 
-                <Container title="Integradores Cadastrados">
-                    <IntegradorLista 
-                        integradores={integradores} 
-                        loading={loading} 
-                        onDelete={handleDelete} 
-                    />
-                </Container>
+                    <Container title="Integradores Cadastrados">
+                        <IntegradorLista 
+                            integradores={integradores} 
+                            loading={loading} 
+                            onDelete={handleDelete} 
+                        />
+                    </Container>
+                </div>
             </section>
         </>
     );

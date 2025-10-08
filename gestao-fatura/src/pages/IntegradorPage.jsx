@@ -18,6 +18,8 @@ const IntegradorPage = () => {
   // Estado para o modal
   const [isModalOpen, setModalOpen] = useState(false);
   const [modalData, setModalData] = useState({ instalacaoId: null, clienteNome: '' });
+  const [preSelectedData, setPreSelectedData] = useState({});
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -49,8 +51,11 @@ const IntegradorPage = () => {
     fetchData();
   }, [integradorId]); // Executa sempre que o ID na URL mudar
 
-  const handleOpenModal = (instalacaoId, clienteNome) => {
-    setModalData({ instalacaoId, clienteNome });
+   const handleOpenModal = (instalacaoId) => {
+    setPreSelectedData({
+      integradorId: integradorId, // ID do integrador da página atual
+      instalacaoId: instalacaoId  // ID da instalação do cliente clicado
+    });
     setModalOpen(true);
   };
 
@@ -65,11 +70,10 @@ const IntegradorPage = () => {
   return (
     <>
       {/* O modal de fatura para esta página */}
-      <FaturaModal
+       <FaturaModal
         isOpen={isModalOpen}
         onClose={() => setModalOpen(false)}
-        // Passando dados pré-selecionados para o modal (opcional, mas melhora a UX)
-        preSelectedData={modalData}
+        preSelectedIds={preSelectedData} // Passa os IDs para o modal
       />
 
       <Container>
@@ -80,10 +84,16 @@ const IntegradorPage = () => {
 
         <div className="clientes-section">
           <h2>Clientes Vinculados</h2>
+
           <ul className="clientes-lista-detalhe">
-            {clientes.length > 0 ? (
+            {/* Verifica se o array 'clientes' está vazio */}
+            {clientes.length === 0 ? (
+              // Se estiver vazio, renderiza este <li>
+              <li className="cliente-lista-vazia">Nenhum cliente cadastrado</li>
+            ) : (
+              // Se não estiver vazio, mapeia e renderiza a lista de clientes
               clientes.map(cliente => (
-                <li key={cliente.instalacao_id}>
+                <li key={cliente.id}> {/* Alterado de cliente.instalacao_id para cliente.id */}
                   <div className="cliente-dados">
                     <div className="cliente-nome">{cliente.nome}</div>
                     <small>UC: {cliente.codigo_uc}</small>
@@ -92,14 +102,12 @@ const IntegradorPage = () => {
                     <Link to={`/cliente/${cliente.cliente_id}/faturas`} className="action-btn ver-faturas-btn">
                       Ver Faturas
                     </Link>
-                    <button className="action-btn" onClick={() => handleOpenModal(cliente.instalacao_id, cliente.nome)}>
+                    <button className="action-btn" onClick={() => handleOpenModal(cliente.id)}> {/* Alterado de cliente.instalacao_id para cliente.id */}
                       Gerar Fatura
                     </button>
                   </div>
                 </li>
               ))
-            ) : (
-              <li>Nenhum cliente vinculado a este integrador.</li>
             )}
           </ul>
         </div>
