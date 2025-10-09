@@ -1,18 +1,18 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate, useOutletContext } from 'react-router-dom';
 import Container from '../components/Container';
 import FaturaModal from '../components/FaturaModal';
-import './FaturasPage.css'; // Estilos específicos para esta página
+import './FaturasPage.css';
 
-// Bibliotecas para o PDF
-import  jsPDF  from 'jspdf';
+import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import 'jspdf-autotable';
 
 const API_BASE_URL = 'http://localhost/faturas/api/';
 
 const FaturasPage = () => {
-    const { clienteId } = useParams(); // Pega o ID do cliente da URL
+    const { clienteId } = useParams();
+    const navigate = useNavigate();
+    const { openFaturaModal } = useOutletContext() || {};
 
     const [cliente, setCliente] = useState(null);
     const [faturas, setFaturas] = useState([]);
@@ -21,9 +21,8 @@ const FaturasPage = () => {
     const [isModalOpen, setModalOpen] = useState(false);
 
     const fetchData = useCallback(async () => {
+        setLoading(true);
         try {
-            setLoading(true);
-            setError('');
             const response = await fetch(`${API_BASE_URL}get_faturas.php?cliente_id=${clienteId}`);
             const data = await response.json();
             if (!response.ok) throw new Error(data.message);
@@ -46,7 +45,8 @@ const FaturasPage = () => {
         integradorId: cliente?.integrador_id
     }), [clienteId, cliente?.integrador_id]);
 
-
+    const formatCurrency = (v, fractionDigits = 2) => v != null ? parseFloat(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: fractionDigits }) : 'R$ 0,00';
+    
     const handleStatusChange = async (faturaId, novoStatus) => {
         try {
             const response = await fetch(`${API_BASE_URL}atualizar_status_fatura.php`, {
@@ -63,131 +63,152 @@ const FaturasPage = () => {
         }
     };
     
-  const handleExportPDF = async (faturaId) => {
-    try {
-        const response = await fetch(`${API_BASE_URL}get_detalhes_fatura.php?fatura_id=${faturaId}`);
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message);
+    const handleExportPDF = async (faturaId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}get_detalhes_fatura.php?fatura_id=${faturaId}`);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message);
+    
+            const doc = new jsPDF();
+            autoTable(doc, {}); 
+    
+            const page_width = doc.internal.pageSize.getWidth();
+            const margin = 14;
+    
+            // Funções de formatação específicas para o PDF
+            const formatMonthYearFull = (d) => d ? new Date(d).toLocaleString('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' }) : '';
+            const formatVencimentoMonth = (d) => d ? new Date(d).toLocaleString('pt-BR', { month: 'long', timeZone: 'UTC' }).toUpperCase() : '';
+            const formatDate = (d) => d ? new Date(d).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '';
+            const formatKwh = (v) => v != null ? parseFloat(v).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '0';
+            const formatPercent = (v) => v != null ? `${parseInt(v)}%` : '0%';
 
-        const doc = new jsPDF();
-        autoTable(doc, {});
+            // --- CABEÇALHO ---
+            doc.addImage('/homolog.png', 'PNG', margin, 15, 30, 15);
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text("RELATÓRIO DE CONSUMO", page_width / 2, 20, { align: 'center' });
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Competência: ${formatMonthYearFull(data.fatura.mes_referencia)}`, page_width / 2, 28, { align: 'center' });
+            doc.setFont(undefined, 'bold');
+            doc.text(`Vencimento em: ${formatVencimentoMonth(data.fatura.data_vencimento)}`, page_width / 2, 34, { align: 'center' });
+            doc.setFont(undefined, 'normal');
 
-        const page_width = doc.internal.pageSize.getWidth();
-        const margin = 14;
-        const right_align_x = page_width - margin;
+            // Linha separadora
+            doc.setLineWidth(0.5);
+            doc.line(margin, 42, page_width - margin, 42);
 
-        const formatDate = (d) => d ? new Date(d).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '';
-        const formatMonthYear = (d) => d ? new Date(d).toLocaleString('pt-BR', { month: '2-digit', year: 'numeric', timeZone: 'UTC' }).toUpperCase() : '';
-        const formatCurrency = (v) => v ? parseFloat(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : 'R$ 0,00';
-        const formatKwh = (v) => v ? parseFloat(v).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0,00';
-        
-        // --- SEÇÃO 1: DADOS DO CLIENTE E DA FATURA ---
-        doc.setFontSize(18);
-        doc.text("Fatura de Geração de Energia", page_width / 2, 22, { align: 'center' });
-        doc.setFontSize(10);
-        doc.setFont(undefined, 'bold');
-        doc.text("CLIENTE", margin, 40);
-        doc.setFont(undefined, 'normal');
-        doc.text(data.fatura.cliente_nome, margin, 46);
-        doc.text(`CPF/CNPJ: ${data.fatura.cliente_documento || ''}`, margin, 52); 
-        doc.text(data.fatura.endereco_instalacao, margin, 58);
-        doc.setFont(undefined, 'bold');
-        doc.text("CÓDIGO DA INSTALAÇÃO", 120, 40);
-        doc.setFont(undefined, 'normal');
-        doc.text(data.fatura.codigo_uc, 120, 46);
-        doc.setLineWidth(0.5);
-        doc.line(margin, 65, page_width - margin, 65);
+            // Informações do cliente
+            doc.setFontSize(9);
+            const leftColX = margin;
+            const rightColX = page_width / 2;
+            doc.setFont(undefined, 'bold');
+            doc.text("CLIENTE:", leftColX, 50);
+            doc.setFont(undefined, 'normal');
+            doc.text(data.fatura.cliente_nome, leftColX + 25, 50);
+            doc.setFont(undefined, 'bold');
+            doc.text("ENDEREÇO:", leftColX, 56);
+            doc.setFont(undefined, 'normal');
+            doc.text(data.fatura.endereco_instalacao, leftColX + 25, 56);
+            doc.setFont(undefined, 'bold');
+            doc.text("CPF/CNPJ:", rightColX, 50);
+            doc.setFont(undefined, 'normal');
+            doc.text(data.fatura.cliente_documento, rightColX + 25, 50);
+            doc.setFont(undefined, 'bold');
+            doc.text("CÓD. UC:", rightColX, 56);
+            doc.setFont(undefined, 'normal');
+            doc.text(data.fatura.codigo_uc, rightColX + 25, 56);
+            doc.line(margin, 62, page_width - margin, 62);
 
-        // --- SEÇÃO 2: DETALHES DA FATURA ATUAL (ITENS E VALORES) ---
-        autoTable(doc, {
-            head: [['Descrição', 'Valor']],
-            body: data.itens.map(item => [item.descricao, formatCurrency(item.valor_total_item)]),
-            startY: 70,
-            theme: 'striped',
-            headStyles: { fillColor: [240, 240, 240], textColor: [40, 40, 40] },
-            styles: { fontSize: 9 },
-            columnStyles: { 1: { halign: 'right' } }
-        });
-        
-        let finalY = doc.lastAutoTable.finalY;
+            let currentY = 70;
+            
+            // --- TABELA DE DETALHES DO CONSUMO E VALORES ---
+            const consumptionDataBody = [
+                ['Data da Leitura', formatDate(data.fatura.data_leitura)],
+                ['Consumo do mês atual (kWh)', formatKwh(data.fatura.consumo_kwh)],
+                ['Valor do kWh (TUSD + TE)', formatCurrency(data.fatura.valor_kwh, 6)],
+                ['Taxa Mínima', formatCurrency(data.fatura.taxa_minima)],
+            ];
+            if (data.fatura.tipo_contrato === 'Investimento') {
+                consumptionDataBody.push(
+                    [{ content: 'Valor total sem desconto', styles: { fontStyle: 'bold' } },
+                     { content: formatCurrency(data.fatura.subtotal), styles: { fontStyle: 'bold' } }]
+                );
+                if (parseFloat(data.fatura.valor_desconto) > 0) {
+                    consumptionDataBody.push([
+                        `Desconto (${formatPercent(data.fatura.percentual_desconto)})`, 
+                        { content: `-${formatCurrency(data.fatura.valor_desconto)}`, styles: { textColor: [220, 53, 69] } }
+                    ]);
+                }
+            }
+            consumptionDataBody.push(
+                [{ content: 'VALOR A PAGAR', styles: { fontStyle: 'bold', fillColor: [220, 235, 255] } },
+                 { content: formatCurrency(data.fatura.valor_total), styles: { fontStyle: 'bold' } }]
+            );
+            
+            autoTable(doc, {
+                body: consumptionDataBody,
+                startY: currentY,
+                theme: 'grid',
+                styles: { fontSize: 9, cellPadding: 3 },
+                columnStyles: { 
+                    0: { fontStyle: 'bold', fillColor: [245, 245, 245] },
+                    1: { halign: 'right' }
+                },
+            });
+            currentY = doc.lastAutoTable.finalY;
 
-        // --- SEÇÃO 3: DADOS DE LEITURA DO MÊS ATUAL ---
-        doc.setFontSize(11);
-        doc.setFont(undefined, 'bold');
-        doc.text("Dados da Leitura - " + formatMonthYear(data.fatura.mes_referencia), margin, finalY + 12);
-        
-        const leituraBody = [
-            ['Consumo da Rede (kWh)', formatKwh(data.fatura.consumo_kwh)],
-            ['Energia Injetada (kWh)', formatKwh(data.fatura.injecao_kwh)],
-        ];
-        autoTable(doc, {
-            body: leituraBody,
-            startY: finalY + 15,
-            theme: 'grid',
-            styles: { fontSize: 9 },
-            columnStyles: { 0: { fontStyle: 'bold' }, 1: { halign: 'right' } },
-        });
+            // --- TABELA DE HISTÓRICO DE CONSUMO ---
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'bold');
+            doc.text("Histórico de Consumo", margin, currentY + 12);
+            const historicFaturas = faturas.slice(0, 6);
+            const historyRows = historicFaturas.map(f => [
+                new Date(f.mes_referencia).toLocaleString('pt-BR', { month: 'short', year: 'numeric', timeZone: 'UTC' }).toUpperCase(),
+                `${formatKwh(f.consumo_kwh)} kWh`
+            ]);
+            autoTable(doc, {
+                head: [['Mês/Ano', 'Consumo']],
+                body: historyRows,
+                startY: currentY + 15,
+                theme: 'striped',
+                headStyles: { fillColor: [220, 220, 220], textColor: [40, 40, 40] },
+                styles: { fontSize: 8 },
+                columnStyles: { 1: { halign: 'right' } }
+            });
+            currentY = doc.lastAutoTable.finalY;
+    
+            // --- SEÇÃO DE PAGAMENTO ---
+            doc.setFontSize(12);
+            doc.text("Pague com PIX:", margin, currentY + 15);
+            doc.addImage('/pix.png', 'PNG', margin, currentY + 18, 55, 55);
+            doc.setFontSize(9);
+            doc.setFont(undefined, 'bold');
+            doc.text("CNPJ: 46.967.661/0001-91", margin, currentY + 78);
+            doc.setFontSize(10);
+            doc.text("VENCIMENTO", 120, currentY + 15);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text(formatDate(data.fatura.data_vencimento), 120, currentY + 21);
+            doc.setFontSize(10);
+            doc.text("TOTAL A PAGAR", 120, currentY + 29);
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text(formatCurrency(data.fatura.valor_total), 120, currentY + 35);
+            
+            doc.setFontSize(8);
+            doc.setFont(undefined, 'italic');
+            const observacao = "*Favor enviar o comprovante via whatsapp +55 81 8987-8175";
+            doc.text(observacao, page_width / 2, doc.internal.pageSize.height - 10, { align: 'center' });
+    
+            doc.save(`Relatorio-${data.fatura.id}-${data.fatura.cliente_nome}.pdf`);
+        } catch (error) {
+            alert(`Erro ao gerar PDF: ${error.message}`);
+        }
+    };
 
-        finalY = doc.lastAutoTable.finalY;
-
-        // --- SEÇÃO 4: HISTÓRICO DE CONSUMO ---
-        doc.setFontSize(11);
-        doc.setFont(undefined, 'bold');
-        doc.text("Histórico de Consumo", margin, finalY + 12);
-
-        const historicFaturas = faturas.slice(0, 12);
-        const historyRows = historicFaturas.map(f => [
-            formatMonthYear(f.mes_referencia),
-            `${formatKwh(f.consumo_kwh)} kWh`
-        ]);
-        autoTable(doc, {
-            head: [['Mês/Ano', 'Consumo']],
-            body: historyRows,
-            startY: finalY + 15,
-            theme: 'striped',
-            headStyles: { fillColor: [240, 240, 240], textColor: [40, 40, 40] },
-            styles: { fontSize: 8 },
-            columnStyles: { 1: { halign: 'right' } }
-        });
-
-        finalY = doc.lastAutoTable.finalY;
-
-        // --- SEÇÃO 5: RODAPÉ COM VALOR TOTAL E PIX ---
-        doc.setFontSize(14);
-        doc.setFont(undefined, 'bold');
-        doc.text("TOTAL A PAGAR:", right_align_x, finalY + 15, { align: 'right' });
-        doc.text(formatCurrency(data.fatura.valor_total), right_align_x, finalY + 22, { align: 'right' });
-        
-        doc.setFontSize(12);
-        doc.text("Pague com PIX:", margin, finalY + 20);
-        
-        doc.addImage('/pix.png', 'PNG', margin, finalY + 23, 60, 60);
-
-        // ** MUDANÇA 1: Adiciona a chave PIX **
-        doc.setFontSize(20);
-        doc.setFont(undefined, 'bold');
-        doc.text("CNPJ: 46.967.661/0001-91", margin, finalY + 88); // Posição Y ajustada para ficar abaixo do QR code
-
-        // ** MUDANÇA 2: Adiciona a observação no rodapé **
-        doc.setFontSize(8);
-        doc.setFont(undefined, 'italic');
-        const observacao = "*Favor enviar o comprovante via whatsapp +55 81 8987-8175";
-        doc.text(observacao, page_width / 2, doc.internal.pageSize.height - 10, { align: 'center' });
-
-        doc.save(`fatura-${data.fatura.id}-${data.fatura.cliente_nome}.pdf`);
-    } catch (error) {
-        alert(`Erro ao gerar PDF: ${error.message}`);
-    }
-};
-
-
-    if (loading) {
-        return <Container><p>Carregando faturas...</p></Container>;
-    }
-
-    if (error) {
-        return <Container><p className="error-message">{error}</p></Container>;
-    }
+    if (loading) return <Container><p>Carregando faturas...</p></Container>;
+    if (error) return <Container><p className="error-message">{error}</p></Container>;
 
     return (
         <>
@@ -195,25 +216,29 @@ const FaturasPage = () => {
                 isOpen={isModalOpen}
                 onClose={() => setModalOpen(false)}
                 onFaturaGerada={fetchData}
-                preSelectedIds={preSelectedIdsForModal} 
+                preSelectedIds={preSelectedIdsForModal}
             />
-            <div className="faturaPage">
-                <Container >
-                    {cliente && (
-                        <div className="cliente-header">
-                            <h1>{cliente.nome}</h1>
-                            <p className="cliente-doc">Documento: {cliente.documento}</p>
-                            <p className='cliente-end'>Endereço: {cliente.endereco_cobranca}</p>
+            <div className="container">
+                {cliente && (
+                    <div className="cliente-header">
+                        <h1>{cliente.nome}</h1>
+                        <p className="cliente-doc">Documento: {cliente.documento}</p>
+                        <div className="cliente-details-grid">
+                            <div className="detail-item"><strong>Tipo de Contrato:</strong><span>{cliente.tipo_contrato}</span></div>
+                            <div className="detail-item"><strong>Tipo de Instalação:</strong><span>{cliente.tipo_instalacao}</span></div>
+                            <div className="detail-item"><strong>Tipo de Ligação:</strong><span>{cliente.tipo_de_ligacao}</span></div>
+                            <div className="detail-item"><strong>Valor TUSD:</strong><span>{formatCurrency(cliente.valor_tusd, 6)}</span></div>
+                            <div className="detail-item"><strong>Valor TE:</strong><span>{formatCurrency(cliente.valor_te, 6)}</span></div>
                         </div>
-                    )}
-
-                    <div className="header-actions">
-                        <h2>Histórico de Faturas</h2>
-                        <button className="action-btn" onClick={() => setModalOpen(true)}>
-                            + Gerar Nova Fatura
-                        </button>
                     </div>
-
+                )}
+                <div className="header-actions">
+                    <h2>Histórico de Faturas</h2>
+                    <button className="action-btn" onClick={() => openFaturaModal ? openFaturaModal({ clienteId: clienteId, integradorId: cliente.integrador_id }) : setModalOpen(true)}>
+                        + Gerar Nova Fatura
+                    </button>
+                </div>
+                <div className="table-wrapper">
                     {faturas.length > 0 ? (
                         <table className="faturas-table">
                             <thead>
@@ -227,7 +252,7 @@ const FaturasPage = () => {
                             </thead>
                             <tbody>
                                 {faturas.map((fatura) => (
-                                    <tr key={fatura.id}>
+                                    <tr key={fatura.id} onClick={(e) => { if (!e.target.closest('select, button, a')) navigate(`/fatura/${fatura.id}`)}}>
                                         <td>{new Date(fatura.mes_referencia).toLocaleDateString('pt-BR', { month: '2-digit', year: 'numeric', timeZone: 'UTC' })}</td>
                                         <td>{new Date(fatura.data_vencimento).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</td>
                                         <td>{new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(fatura.valor_total)}</td>
@@ -244,9 +269,12 @@ const FaturasPage = () => {
                                             </select>
                                         </td>
                                         <td>
-                                            <button className="pdf-btn" onClick={() => handleExportPDF(fatura.id)}>
-                                                Exportar PDF
-                                            </button>
+                                            <div className="actions-cell">
+                                                <Link to={`/fatura/${fatura.id}`} className="btn-details">Ver Detalhes</Link>
+                                                <button className="pdf-btn" onClick={(e) => { e.stopPropagation(); handleExportPDF(fatura.id); }}>
+                                                    Exportar PDF
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -255,8 +283,8 @@ const FaturasPage = () => {
                     ) : (
                         <p className="no-data">Nenhuma fatura encontrada para este cliente.</p>
                     )}
-                    <Link to={`/integrador/${cliente?.integrador_id || ''}`} className="back-link">&larr; Voltar para o Integrador</Link>
-                </Container>
+                </div>
+                <Link to={`/integrador/${cliente?.integrador_id || ''}`} className="back-link">&larr; Voltar para o Integrador</Link>
             </div>
         </>
     );

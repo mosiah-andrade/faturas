@@ -3,6 +3,10 @@
 
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
+// Desabilita o cache para garantir que os dados sejam sempre os mais recentes
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
 
 require_once 'Database.php';
 
@@ -18,14 +22,17 @@ try {
 
     $clienteId = $_GET['cliente_id'];
     $response = [];
-    
-    // 1. Buscar informações do cliente (sem alteração)
+
+    // CORREÇÃO 1: Consulta do cliente simplificada para evitar erros de GROUP BY
     $stmtCliente = $pdo->prepare("
-        SELECT c.id, c.nome, c.documento, c.endereco_cobranca, i.integrador_id 
+        SELECT 
+            c.id, c.nome, c.documento, c.endereco_cobranca,
+            i.integrador_id, i.tipo_contrato, i.tipo_instalacao, 
+            i.valor_tusd, i.valor_te, i.tipo_de_ligacao
         FROM clientes c
         LEFT JOIN instalacoes i ON c.id = i.cliente_id
         WHERE c.id = ?
-        GROUP BY c.id
+        LIMIT 1 -- Garante que apenas um resultado seja retornado
     ");
     $stmtCliente->execute([$clienteId]);
     $cliente = $stmtCliente->fetch(PDO::FETCH_ASSOC);
@@ -37,15 +44,19 @@ try {
     }
     $response['cliente'] = $cliente;
 
-    // 2. MUDANÇA AQUI: Buscar faturas junto com dados de leitura
+    // CORREÇÃO 2: Consulta de faturas com colunas explícitas para evitar ambiguidade
     $stmtFaturas = $pdo->prepare(
         "SELECT 
-            f.id, f.mes_referencia, f.data_vencimento, f.valor_total, f.status,
-            lm.consumo_kwh, lm.injecao_kwh
-         FROM faturas f
-         LEFT JOIN leituras_medidor lm ON f.instalacao_id = lm.instalacao_id AND f.mes_referencia = lm.mes_referencia
-         WHERE f.cliente_id = ? 
-         ORDER BY f.mes_referencia DESC"
+            faturas.id, 
+            faturas.mes_referencia, 
+            faturas.data_vencimento, 
+            faturas.valor_total, 
+            faturas.status, 
+            lm.consumo_kwh 
+         FROM faturas 
+         LEFT JOIN leituras_medidor lm ON faturas.instalacao_id = lm.instalacao_id AND faturas.mes_referencia = lm.mes_referencia
+         WHERE faturas.cliente_id = ? 
+         ORDER BY faturas.mes_referencia DESC"
     );
     $stmtFaturas->execute([$clienteId]);
     $faturas = $stmtFaturas->fetchAll(PDO::FETCH_ASSOC);
@@ -57,6 +68,7 @@ try {
 
 } catch (PDOException $e) {
     http_response_code(500);
+    // Retorna o detalhe do erro para facilitar a depuração, se necessário
     echo json_encode(['message' => 'Erro ao buscar dados no banco de dados.', 'details' => $e->getMessage()]);
 }
 ?>

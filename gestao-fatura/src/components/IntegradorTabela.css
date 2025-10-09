@@ -1,0 +1,77 @@
+.table-container {
+    width: 100%;
+}
+
+.filter-input {
+    width: 100%;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.integradores-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+.integradores-table th,
+.integradores-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.integradores-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.integradores-table tbody tr:hover {
+    background-color: #f1f3f5;
+}
+
+.integradores-table .actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.integradores-table .btn-details,
+.integradores-table .btn-red {
+    padding: 6px 12px;
+    font-size: 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    color: white;
+    border: none;
+
+}
+.suggestion-cell {
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+  color: #6c757d;
+}
+
+.btn-suggest {
+  background: none;
+  border: none;
+  color: #007bff;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 1em;
+  font-style: normal;
+  margin-left: 10px;
+}
+
+.integradores-table tbody tr {
+    cursor: pointer; /* Adicione esta linha */
+}
+
+.integradores-table tbody tr:hover {
+    background-color: #f1f3f5;
+}

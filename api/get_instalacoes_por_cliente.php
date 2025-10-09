@@ -17,7 +17,7 @@ try {
     }
 
     $stmt = $pdo->prepare("
-        SELECT id, codigo_uc, endereco_instalacao 
+        SELECT id, codigo_uc, endereco_instalacao, tipo_contrato, tipo_instalacao
         FROM instalacoes 
         WHERE cliente_id = ?
         ORDER BY id

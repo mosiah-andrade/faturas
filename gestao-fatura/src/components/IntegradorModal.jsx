@@ -2,7 +2,7 @@ import React from 'react';
 import IntegradorForm from './IntegradorForm';
 import './Modal.css';
 
-const IntegradorModal = ({ isOpen, onClose, onCadastroSucesso, initialName }) => {
+const IntegradorModal = ({ isOpen, onClose, onCadastroSucesso }) => {
   if (!isOpen) return null;
 
   return (
@@ -10,10 +10,7 @@ const IntegradorModal = ({ isOpen, onClose, onCadastroSucesso, initialName }) =>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <span className="close-btn" onClick={onClose}>&times;</span>
         <h2>Cadastrar Novo Integrador</h2>
-        <IntegradorForm 
-          onCadastroSucesso={onCadastroSucesso} 
-          initialName={initialName} // Passa o nome para o formulário
-        />
+        <IntegradorForm onCadastroSucesso={onCadastroSucesso} />
       </div>
     </div>
   );

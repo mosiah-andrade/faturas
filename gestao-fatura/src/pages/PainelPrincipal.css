@@ -1,10 +1,9 @@
-section{
+/* O .container dentro do .app-content ocupará o espaço corretamente */
+.app-content .container {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    flex-grow: 1;
     display: flex;
-    flex-direction: row;
-    gap: 75px;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    margin: auto;
-    width: 100vw;
+    flex-direction: column;
 }

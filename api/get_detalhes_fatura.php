@@ -3,6 +3,9 @@
 
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
 
 require_once 'Database.php';
 
@@ -19,12 +22,13 @@ try {
     $faturaId = $_GET['fatura_id'];
     $response = [];
 
-    // MUDANÇA: Adicionado c.email e lm.data_leitura à consulta
+    // CORREÇÃO: A coluna "c.email as cliente_email" foi removida da consulta
     $stmt = $pdo->prepare("
         SELECT 
             f.id, f.mes_referencia, f.data_emissao, f.data_vencimento, f.valor_total, f.status,
-            c.nome as cliente_nome, c.documento as cliente_documento, c.email as cliente_email,
-            i.codigo_uc, i.endereco_instalacao,
+            f.valor_kwh, f.taxa_minima, f.percentual_desconto, f.subtotal, f.valor_desconto,
+            c.nome as cliente_nome, c.documento as cliente_documento,
+            i.codigo_uc, i.endereco_instalacao, i.tipo_de_ligacao, i.valor_tusd, i.valor_te, i.tipo_contrato,
             lm.consumo_kwh, lm.injecao_kwh, lm.data_leitura
         FROM faturas f
         JOIN clientes c ON f.cliente_id = c.id

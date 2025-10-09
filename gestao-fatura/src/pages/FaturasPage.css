@@ -51,6 +51,7 @@
     background-repeat: no-repeat;
     background-size: 10px;
     padding-right: 25px;
+    width: 120px;
 }
 
 /* Estilos de cor para o select */
@@ -67,6 +68,7 @@
     border-radius: 6px;
     cursor: pointer;
     font-size: 14px;
+    width: 120px;
 }
 
 .no-data {
@@ -91,10 +93,51 @@
 .action-btn:hover{
     opacity: 80%;
 }
-.faturaPage{
+
+/* Adicione no final do arquivo FaturasPage.css */
+
+.faturas-table tbody tr {
+    cursor: pointer;
+}
+
+.actions-cell {
     display: flex;
-    justify-content: center;
-    margin: auto;
-    width: 100vw;
-    height: 100vh;
+    gap: 10px;
+}
+
+.actions-cell .btn-details {
+    padding: 8px 12px;
+    font-size: 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    text-decoration: none;
+    color: white;
+    background-color: #17a2b8;
+    white-space: nowrap;
+}
+/* --- ESTILOS PARA DETALHES DO CLIENTE --- */
+.cliente-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.detail-item strong {
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-bottom: 4px;
+}
+
+.detail-item span {
+    font-size: 1.1em;
+    color: #212529;
+    font-weight: 500;
 }

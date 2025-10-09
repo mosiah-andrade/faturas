@@ -4,6 +4,11 @@
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
 
+// ADICIONE ESTAS 3 LINHAS PARA DESABILITAR O CACHE
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+
 require_once 'Database.php';
 
 try {
@@ -17,26 +22,28 @@ try {
     }
 
     $integradorId = $_GET['integrador_id'];
-
-    // A MUDANÇA ESTÁ AQUI: Trocamos "i.id as instalacao_id" por "i.id as id"
+    
+    // Consulta atualizada para incluir os tipos de contrato e instalação
     $sql = "SELECT 
                 c.id as cliente_id, 
                 c.nome, 
-                i.id as id, -- Alterado de instalacao_id para id
-                i.codigo_uc 
+                i.id,
+                i.codigo_uc,
+                i.tipo_contrato,
+                i.tipo_instalacao
             FROM clientes c
             JOIN instalacoes i ON c.id = i.cliente_id
             WHERE i.integrador_id = ?";
             
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$integradorId]);
-    $instalacoes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     http_response_code(200);
-    echo json_encode($instalacoes);
+    echo json_encode($clientes);
 
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['message' => 'Erro ao buscar instalações por integrador.', 'details' => $e->getMessage()]);
+    echo json_encode(['message' => 'Erro ao buscar clientes.', 'details' => $e->getMessage()]);
 }
 ?>

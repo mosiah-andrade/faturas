@@ -1,6 +1,7 @@
 :root{
   --yellow: #dcdf43;
   --blue: #031f7e;
+  --red: rgb(187, 48, 6);
   box-sizing: border-box  ;
   margin: 0;
 }
@@ -8,21 +9,17 @@
 
 .btn-blue{
   background-color: var(--blue);
-  padding: 5px;
-  border-radius: 6px;
-  color: azure;
-  display: flex;
-  align-items: center;
-  text-align: center;
-  justify-content: center;
+  
 }
-.btn-blue:hover{
+.btn-blue:hover, .btn-orange:hover  , .btn-red:hover{
   opacity: 80%;
   color: rgba(240, 255, 255, 0.815);
+  transform: scale(1.01);
+  transition: all 1s;
 }
 .btn-orange{
   background-color:  #ff9900;
 }
-.btn-orange:hover{
-  opacity: 80%;
+.btn-red{
+  background-color: var(--red);
 }

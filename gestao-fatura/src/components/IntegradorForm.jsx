@@ -1,14 +1,19 @@
-import React, { useState } from 'react';
-import './Form.css'; // Usaremos um CSS compartilhado para os formulários
+import React, { useState, useEffect } from 'react';
+import './Form.css';
 
-// Defina a URL base da sua API aqui
 const API_BASE_URL = 'http://localhost/faturas/api/';
 
-const IntegradorForm = ({ onCadastroSucesso }) => {
-  const [nome, setNome] = useState('');
+const IntegradorForm = ({ onCadastroSucesso, initialName = '' }) => {
+  // O estado 'nome' agora começa com o valor de initialName
+  const [nome, setNome] = useState(initialName);
   const [contato, setContato] = useState('');
   const [mensagem, setMensagem] = useState({ texto: '', tipo: '' });
   const [enviando, setEnviando] = useState(false);
+
+  // Efeito para atualizar o nome se o modal for reaberto com um novo nome
+  useEffect(() => {
+    setNome(initialName);
+  }, [initialName]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,7 +39,6 @@ const IntegradorForm = ({ onCadastroSucesso }) => {
       setNome('');
       setContato('');
       
-      // Avisa o componente pai que um novo integrador foi cadastrado
       if (onCadastroSucesso) {
         onCadastroSucesso();
       }
