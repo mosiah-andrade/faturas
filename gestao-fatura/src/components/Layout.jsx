@@ -39,7 +39,6 @@ const Layout = () => {
     window.location.reload(); 
   };
 
-  // "Memoriza" a função para que ela não seja recriada a cada renderização
   const openFaturaModal = useCallback((ids = {}) => {
     setPreSelectedIds(ids);
     setFaturaModalOpen(true);
@@ -49,9 +48,18 @@ const Layout = () => {
     setFaturaModalOpen(false);
     setPreSelectedIds({});
   }, []);
+  
+  const openClienteModal = useCallback((ids = {}) => {
+    setPreSelectedIds(ids);
+    setClienteModalOpen(true);
+  }, []);
 
-  // "Memoriza" o objeto de contexto para evitar re-renderizações nas páginas filhas
-  const contextValue = useMemo(() => ({ openFaturaModal }), [openFaturaModal]);
+  const closeClienteModal = useCallback(() => {
+    setClienteModalOpen(false);
+    setPreSelectedIds({});
+  }, []);
+
+  const contextValue = useMemo(() => ({ openFaturaModal, openClienteModal }), [openFaturaModal, openClienteModal]);
 
   return (
     <>
@@ -64,8 +72,9 @@ const Layout = () => {
       />
       <ClienteModal
         isOpen={isClienteModalOpen}
-        onClose={() => setClienteModalOpen(false)}
+        onClose={closeClienteModal}
         integradores={integradores}
+        preSelectedIds={preSelectedIds}
       />
       <IntegradorModal
         isOpen={isIntegradorModalOpen}
@@ -78,7 +87,7 @@ const Layout = () => {
           isCollapsed={isCollapsed}
           toggleSidebar={() => setIsCollapsed(!isCollapsed)}
           onGerarFatura={openFaturaModal}
-          onCadastrarCliente={() => setClienteModalOpen(true)}
+          onCadastrarCliente={openClienteModal}
           onCadastrarIntegrador={() => setIntegradorModalOpen(true)}
         />
         <main className="app-content">

@@ -110,3 +110,6 @@
   opacity: 0;
   display: none;
 }
+.sidebar-footer {
+    margin-top: auto; /* Empurra para o final */
+}

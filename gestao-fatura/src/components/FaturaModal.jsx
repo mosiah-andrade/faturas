@@ -80,6 +80,54 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
         e.preventDefault();
         setEnviando(true);
         setMensagem({ texto: '', tipo: '' });
+
+        // --- LÓGICA DE LOG NO CONSOLE (CORRIGIDA) ---
+        console.clear();
+        console.log("%c--- INÍCIO DO CÁLCULO DA FATURA (FRONTEND) ---", "color: blue; font-weight: bold;");
+
+        const consumoEmReais = parseFloat(formData.consumo_kwh || 0);
+        const taxaMinima = parseFloat(formData.taxa_minima || 0);
+        const percentualDesconto = parseInt(formData.percentual_desconto || 0);
+
+        if (selectedInstalacaoInfo.tipo_contrato === 'Investimento') {
+            console.log("Tipo de Contrato: Investimento");
+            console.log(`Regra de Faturamento: ${selectedInstalacaoInfo.regra_faturamento}`);
+            
+            let subtotal, valorDesconto, valorFinal;
+
+            if (selectedInstalacaoInfo.regra_faturamento === 'Antes da Taxação') {
+                console.log("Cálculo ANTES da Taxação:");
+                console.log("1. Subtotal = Consumo (R$) + Taxa Mínima");
+                subtotal = consumoEmReais + taxaMinima;
+                console.log(`   ${consumoEmReais.toFixed(2)} + ${taxaMinima.toFixed(2)} = ${subtotal.toFixed(2)}`);
+
+                console.log("2. Valor do Desconto = Subtotal * (Percentual / 100)");
+                valorDesconto = subtotal * (percentualDesconto / 100);
+                console.log(`   ${subtotal.toFixed(2)} * (${percentualDesconto} / 100) = ${valorDesconto.toFixed(2)}`);
+                
+                console.log("3. Valor Final = Subtotal - Valor do Desconto");
+                valorFinal = subtotal - valorDesconto;
+                console.log(`   ${subtotal.toFixed(2)} - ${valorDesconto.toFixed(2)} = ${valorFinal.toFixed(2)}`);
+            } else { // Depois da Taxação
+                console.log("Cálculo DEPOIS da Taxação:");
+                subtotal = consumoEmReais;
+                console.log("1. Valor do Desconto = Consumo (R$) * (Percentual / 100)");
+                valorDesconto = consumoEmReais * (percentualDesconto / 100);
+                console.log(`   ${consumoEmReais.toFixed(2)} * (${percentualDesconto} / 100) = ${valorDesconto.toFixed(2)}`);
+
+                console.log("2. Valor Final = (Consumo (R$) - Valor do Desconto) + Taxa Mínima");
+                valorFinal = (consumoEmReais - valorDesconto) + taxaMinima;
+                console.log(`   (${consumoEmReais.toFixed(2)} - ${valorDesconto.toFixed(2)}) + ${taxaMinima.toFixed(2)} = ${valorFinal.toFixed(2)}`);
+            }
+            console.log(`%cVALOR FINAL CALCULADO: R$ ${valorFinal.toFixed(2)}`, "color: green; font-weight: bold;");
+
+        } else {
+            console.log("Tipo de Contrato: Monitoramento");
+            const valorFinal = parseFloat(formData.valor_total || 0);
+            console.log(`VALOR FINAL (Informado Manualmente): R$ ${valorFinal.toFixed(2)}`);
+        }
+        console.log("%c--- FIM DO CÁLCULO (FRONTEND) ---", "color: blue; font-weight: bold;");
+
         try {
             const response = await fetch(`${API_BASE_URL}gerar_fatura.php`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -145,7 +193,7 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
                                 <fieldset className="form-section">
                                     <legend>Dados de Investimento</legend>
                                     <div className="form-row">
-                                        <div className="form-group"><label htmlFor="consumo_kwh">Consumo (kWh):</label><input type="number" step="0.01" id="consumo_kwh" value={formData.consumo_kwh || ''} onChange={handleChange} required /></div>
+                                        <div className="form-group"><label htmlFor="consumo_kwh">Consumo (R$):</label><input type="number" step="0.01" id="consumo_kwh" value={formData.consumo_kwh || ''} onChange={handleChange} required /></div>
                                         <div className="form-group"><label htmlFor="taxa_minima">Taxa Mínima (R$):</label><input type="number" step="0.01" id="taxa_minima" value={formData.taxa_minima || ''} onChange={handleChange} placeholder="Ex: 30.00" /></div>
                                     </div>
                                     <div className="form-row">

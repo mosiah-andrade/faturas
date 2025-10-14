@@ -1,24 +1,43 @@
 .integrador-header {
     text-align: center;
-    border-bottom: 1px solid #dee2e6;
+    border-bottom: 1px solid #e9ecef;
     padding-bottom: 20px;
     margin-bottom: 30px;
 }
 
 .integrador-header h1 {
     margin: 0;
-    color: #212529;
+    font-size: 2.5em;
+    color: #343a40;
 }
 
 .integrador-header .contato {
     font-size: 1.1em;
-    color: #6c757d;
+    color: #adb5bd;
     margin-top: 5px;
 }
 
-.clientes-section h2 {
-    text-align: center;
-    color: #343a40;
+.clientes-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.clientes-section-header h2 {
+    margin: 0;
+    font-size: 1.5em;
+    color: #495057;
+    border-bottom: 3px solid #ff9900;
+    padding-bottom: 5px;
+}
+
+.clientes-section-header .action-btn {
+    background-color: #343a40;
+    color: white;
+    border-radius: 20px;
+    font-weight: 600;
+    padding: 10px 20px;
 }
 
 .clientes-lista-detalhe {
@@ -27,15 +46,24 @@
 }
 
 .clientes-lista-detalhe li {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 10px;
+    background-color: transparent;
+    padding: 20px 10px;
+    border-bottom: 1px solid #f1f3f5;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: wrap;
     gap: 15px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.clientes-lista-detalhe li:last-child {
+    border-bottom: none;
+}
+
+.clientes-lista-detalhe li:hover {
+    background-color: #f8f9fa;
+    border-radius: 8px;
 }
 
 .cliente-dados {
@@ -44,6 +72,12 @@
 
 .cliente-nome {
     font-weight: 600;
+    font-size: 1.1em;
+    color: #495057;
+}
+
+.cliente-dados small {
+    color: #adb5bd;
 }
 
 .cliente-acoes {
@@ -51,27 +85,47 @@
     gap: 10px;
 }
 
-.action-btn {
-    background-color: #007bff;
+.cliente-acoes .action-btn {
     color: white;
     border: none;
-    padding: 8px 12px;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 14px;
     text-decoration: none;
-    text-align: center;
-    white-space: nowrap;
+}
+
+.cliente-acoes .icon-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 60px;
+    height: 38px;
+    padding: 0;
+    border-radius: 20px;
+    font-size: 18px;
+    transition: opacity 0.2s;
+}
+
+.cliente-acoes .icon-btn:hover {
+    opacity: 0.85;
 }
 
 .ver-faturas-btn {
     background-color: #28a745;
 }
 
+/* CORREÇÃO AQUI: A cor do ícone agora é branca */
+.ver-faturas-btn svg {
+    color: white;
+}
+
+.gerar-fatura-btn {
+    background-color: #007bff;
+}
+
 .back-link {
     display: block;
     text-align: center;
-    margin-top: 30px;
+    margin-top: 40px;
     color: #ff9900;
     font-weight: 600;
     text-decoration: none;
@@ -83,21 +137,4 @@
     padding: 15px;
     border-radius: 6px;
     text-align: center;
-}
-.clientes-lista-detalhe li {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 15px;
-    cursor: pointer; /* Adicione esta linha */
-    transition: background-color 0.2s; /* Efeito suave ao passar o mouse */
-}
-
-.clientes-lista-detalhe li:hover {
-    background-color: #e9ecef;
 }

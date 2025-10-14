@@ -1,61 +1,63 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useOutletContext } from 'react-router-dom';
 import Container from '../components/Container';
 import './IntegradorPage.css';
+import { FiEye, FiFilePlus } from 'react-icons/fi';
 
 const API_BASE_URL = 'http://localhost/faturas/api/';
 
 const IntegradorPage = () => {
   const { integradorId } = useParams();
   const navigate = useNavigate();
-  const { openFaturaModal } = useOutletContext();
+  const { openClienteModal, openFaturaModal } = useOutletContext();
 
   const [integrador, setIntegrador] = useState(null);
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // MUDANÇA 1: A função de busca de dados agora é "memorizada" com useCallback
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const [integradorRes, clientesRes] = await Promise.all([
-        fetch(`${API_BASE_URL}get_integrador.php?id=${integradorId}`),
-        fetch(`${API_BASE_URL}get_clientes_por_integrador.php?integrador_id=${integradorId}`)
-      ]);
-
-      if (!integradorRes.ok) throw new Error('Falha ao buscar dados do integrador.');
-      const integradorData = await integradorRes.json();
-      setIntegrador(integradorData);
-
-      if (!clientesRes.ok) throw new Error('Falha ao buscar clientes.');
-      const clientesData = await clientesRes.json();
-      setClientes(clientesData);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [integradorId]); // A função só será recriada se o 'integradorId' mudar
-
-  // MUDANÇA 2: O useEffect agora apenas chama a função memorizada
+  // CORREÇÃO: A lógica de busca de dados foi reestruturada e movida para dentro do useEffect.
   useEffect(() => {
-    fetchData();
-  }, [fetchData]); // O efeito roda quando a função fetchData é (re)criada
+    // A função de busca agora vive dentro do useEffect e não precisa de useCallback.
+    const fetchData = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const [integradorRes, clientesRes] = await Promise.all([
+          fetch(`${API_BASE_URL}get_integrador.php?id=${integradorId}`),
+          fetch(`${API_BASE_URL}get_clientes_por_integrador.php?integrador_id=${integradorId}`)
+        ]);
 
-  const handleGerarFaturaClick = (instalacaoId) => {
-    openFaturaModal({
-      integradorId: integradorId,
-      instalacaoId: instalacaoId
-    });
-  };
+        if (!integradorRes.ok) throw new Error('Falha ao buscar dados do integrador.');
+        const integradorData = await integradorRes.json();
+        setIntegrador(integradorData);
+
+        if (!clientesRes.ok) throw new Error('Falha ao buscar clientes.');
+        const clientesData = await clientesRes.json();
+        setClientes(clientesData);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [integradorId]); // O efeito agora depende apenas do 'integradorId', que é estável.
 
   const handleRowClick = (clienteId, event) => {
     if (event.target.closest('button, a')) {
       return;
     }
     navigate(`/cliente/${clienteId}/faturas`);
+  };
+
+  const handleGerarFaturaClick = (instalacaoId, e) => {
+      e.stopPropagation();
+      openFaturaModal({
+          integradorId: integradorId,
+          instalacaoId: instalacaoId
+      });
   };
 
   if (loading) {
@@ -66,6 +68,11 @@ const IntegradorPage = () => {
     return <Container><p className="error-message">{error}</p></Container>;
   }
 
+  // Adicionamos uma verificação para o caso de o integrador ainda não ter sido carregado
+  if (!integrador) {
+      return <Container><p>Integrador não encontrado.</p></Container>;
+  }
+
   return (
     <Container>
       <div className="integrador-header">
@@ -73,9 +80,17 @@ const IntegradorPage = () => {
         <p className="contato">{integrador.numero_de_contato}</p>
       </div>
 
-      <div className="clientes-section">
+      <div className="clientes-section-header">
         <h2>Clientes Vinculados</h2>
-        <ul className="clientes-lista-detalhe">
+        <button 
+            className="action-btn" 
+            onClick={() => openClienteModal({ integradorId: integradorId })}
+        >
+            + Cadastrar Cliente
+        </button>
+      </div>
+      
+      <ul className="clientes-lista-detalhe">
           {clientes.length === 0 ? (
             <li className="cliente-lista-vazia">Nenhum cliente cadastrado</li>
           ) : (
@@ -86,18 +101,17 @@ const IntegradorPage = () => {
                   <small>UC: {cliente.codigo_uc}</small>
                 </div>
                 <div className="cliente-acoes">
-                  <Link to={`/cliente/${cliente.cliente_id}/faturas`} className="action-btn ver-faturas-btn">
-                    Ver Faturas
+                  <Link to={`/cliente/${cliente.cliente_id}/faturas`} className="action-btn icon-btn ver-faturas-btn" title="Ver Faturas">
+                    <FiEye />
                   </Link>
-                  <button className="action-btn" onClick={() => handleGerarFaturaClick(cliente.id)}>
-                    Gerar Fatura
+                  <button className="action-btn icon-btn gerar-fatura-btn" onClick={(e) => handleGerarFaturaClick(cliente.id, e)} title="Gerar Fatura">
+                    <FiFilePlus />
                   </button>
                 </div>
               </li>
             ))
           )}
-        </ul>
-      </div>
+      </ul>
       <Link to="/" className="back-link">&larr; Voltar ao Painel Principal</Link>
     </Container>
   );

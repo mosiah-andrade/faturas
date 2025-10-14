@@ -1,9 +1,7 @@
 <?php
 // faturas/api/get_instalacoes_por_cliente.php
-
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
-
 require_once 'Database.php';
 
 try {
@@ -16,8 +14,9 @@ try {
         exit();
     }
 
+    // CORREÇÃO: Adicionada a coluna regra_faturamento
     $stmt = $pdo->prepare("
-        SELECT id, codigo_uc, endereco_instalacao, tipo_contrato, tipo_instalacao
+        SELECT id, codigo_uc, endereco_instalacao, tipo_contrato, tipo_instalacao, regra_faturamento
         FROM instalacoes 
         WHERE cliente_id = ?
         ORDER BY id

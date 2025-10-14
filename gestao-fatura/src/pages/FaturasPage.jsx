@@ -75,24 +75,27 @@ const FaturasPage = () => {
             const page_width = doc.internal.pageSize.getWidth();
             const margin = 14;
     
-            // Funções de formatação específicas para o PDF
+            // Funções de formatação
             const formatMonthYearFull = (d) => d ? new Date(d).toLocaleString('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' }) : '';
             const formatVencimentoMonth = (d) => d ? new Date(d).toLocaleString('pt-BR', { month: 'long', timeZone: 'UTC' }).toUpperCase() : '';
             const formatDate = (d) => d ? new Date(d).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) : '';
             const formatKwh = (v) => v != null ? parseFloat(v).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : '0';
             const formatPercent = (v) => v != null ? `${parseInt(v)}%` : '0%';
 
-            // --- CABEÇALHO ---
-            doc.addImage('/homolog.png', 'PNG', margin, 15, 30, 15);
-            doc.setFontSize(16);
+            // --- NOVO CABEÇALHO ---
+            doc.addImage('/homolog.png', 'PNG', margin, 5, 25, 28);
+
+            const titleX = 80; // Posição X para o início dos títulos
+            doc.setFontSize(18);
             doc.setFont(undefined, 'bold');
-            doc.text("RELATÓRIO DE CONSUMO", page_width / 2, 20, { align: 'center' });
+            doc.text("RELATÓRIO DE CONSUMO", titleX, 20);
+            
             doc.setFontSize(11);
             doc.setFont(undefined, 'normal');
-            doc.text(`Competência: ${formatMonthYearFull(data.fatura.mes_referencia)}`, page_width / 2, 28, { align: 'center' });
+            doc.text(`Competência: ${formatMonthYearFull(data.fatura.mes_referencia)}`, titleX, 28);
+            
             doc.setFont(undefined, 'bold');
-            doc.text(`Vencimento em: ${formatVencimentoMonth(data.fatura.data_vencimento)}`, page_width / 2, 34, { align: 'center' });
-            doc.setFont(undefined, 'normal');
+            doc.text(`Vencimento em: ${formatVencimentoMonth(data.fatura.data_vencimento)}`, titleX, 34);
 
             // Linha separadora
             doc.setLineWidth(0.5);
@@ -102,31 +105,35 @@ const FaturasPage = () => {
             doc.setFontSize(9);
             const leftColX = margin;
             const rightColX = page_width / 2;
+
             doc.setFont(undefined, 'bold');
             doc.text("CLIENTE:", leftColX, 50);
             doc.setFont(undefined, 'normal');
             doc.text(data.fatura.cliente_nome, leftColX + 25, 50);
+
             doc.setFont(undefined, 'bold');
             doc.text("ENDEREÇO:", leftColX, 56);
             doc.setFont(undefined, 'normal');
             doc.text(data.fatura.endereco_instalacao, leftColX + 25, 56);
+
             doc.setFont(undefined, 'bold');
             doc.text("CPF/CNPJ:", rightColX, 50);
             doc.setFont(undefined, 'normal');
             doc.text(data.fatura.cliente_documento, rightColX + 25, 50);
+
             doc.setFont(undefined, 'bold');
             doc.text("CÓD. UC:", rightColX, 56);
             doc.setFont(undefined, 'normal');
             doc.text(data.fatura.codigo_uc, rightColX + 25, 56);
+
             doc.line(margin, 62, page_width - margin, 62);
 
             let currentY = 70;
             
-            // --- TABELA DE DETALHES DO CONSUMO E VALORES ---
+            // --- TABELAS (O restante do código permanece o mesmo) ---
             const consumptionDataBody = [
                 ['Data da Leitura', formatDate(data.fatura.data_leitura)],
-                ['Consumo do mês atual (kWh)', formatKwh(data.fatura.consumo_kwh)],
-                ['Valor do kWh (TUSD + TE)', formatCurrency(data.fatura.valor_kwh, 6)],
+                ['Consumo (R$)', formatCurrency(data.fatura.consumo_kwh)],
                 ['Taxa Mínima', formatCurrency(data.fatura.taxa_minima)],
             ];
             if (data.fatura.tipo_contrato === 'Investimento') {
@@ -158,7 +165,6 @@ const FaturasPage = () => {
             });
             currentY = doc.lastAutoTable.finalY;
 
-            // --- TABELA DE HISTÓRICO DE CONSUMO ---
             doc.setFontSize(11);
             doc.setFont(undefined, 'bold');
             doc.text("Histórico de Consumo", margin, currentY + 12);
@@ -178,7 +184,6 @@ const FaturasPage = () => {
             });
             currentY = doc.lastAutoTable.finalY;
     
-            // --- SEÇÃO DE PAGAMENTO ---
             doc.setFontSize(12);
             doc.text("Pague com PIX:", margin, currentY + 15);
             doc.addImage('/pix.png', 'PNG', margin, currentY + 18, 55, 55);
@@ -227,8 +232,6 @@ const FaturasPage = () => {
                             <div className="detail-item"><strong>Tipo de Contrato:</strong><span>{cliente.tipo_contrato}</span></div>
                             <div className="detail-item"><strong>Tipo de Instalação:</strong><span>{cliente.tipo_instalacao}</span></div>
                             <div className="detail-item"><strong>Tipo de Ligação:</strong><span>{cliente.tipo_de_ligacao}</span></div>
-                            <div className="detail-item"><strong>Valor TUSD:</strong><span>{formatCurrency(cliente.valor_tusd, 6)}</span></div>
-                            <div className="detail-item"><strong>Valor TE:</strong><span>{formatCurrency(cliente.valor_te, 6)}</span></div>
                         </div>
                     </div>
                 )}

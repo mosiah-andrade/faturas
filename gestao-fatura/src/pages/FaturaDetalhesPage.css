@@ -56,3 +56,63 @@
     border-radius: 8px;
     text-align: center;
 }
+.detalhes-fatura-container {
+    padding: 20px;
+}
+
+.detalhes-header {
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.detalhes-header h1 {
+    margin-bottom: 10px;
+}
+
+.detalhes-header p {
+    font-size: 1.1em;
+    color: #6c757d;
+    margin: 4px 0;
+}
+
+.detalhes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.detalhe-item {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 5px solid #007bff;
+}
+
+.detalhe-item span {
+    display: block;
+    font-size: 0.9em;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.detalhe-item strong {
+    font-size: 1.4em;
+    color: #212529;
+}
+
+.detalhe-item.total {
+    border-left-color: #28a745;
+    background-color: #e9f5ec;
+}
+
+.detalhe-item.total strong {
+    color: #28a745;
+}
+
+/* Estilos para o status (reutilizados de FaturasPage.css) */
+.detalhe-item .status-paga { color: #28a745; }
+.detalhe-item .status-pendente { color: #ffc107; }
+.detalhe-item .status-vencida { color: #dc3545; }
+.detalhe-item .status-cancelada { color: #6c757d; }

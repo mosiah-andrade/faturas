@@ -3,7 +3,6 @@
 
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
-// Desabilita o cache para garantir que os dados sejam sempre os mais recentes
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
@@ -23,16 +22,16 @@ try {
     $clienteId = $_GET['cliente_id'];
     $response = [];
 
-    // CORREÇÃO 1: Consulta do cliente simplificada para evitar erros de GROUP BY
+    // CORREÇÃO: Removido 'valor_tusd' e 'valor_te' da consulta
     $stmtCliente = $pdo->prepare("
         SELECT 
             c.id, c.nome, c.documento, c.endereco_cobranca,
             i.integrador_id, i.tipo_contrato, i.tipo_instalacao, 
-            i.valor_tusd, i.valor_te, i.tipo_de_ligacao
+            i.tipo_de_ligacao
         FROM clientes c
         LEFT JOIN instalacoes i ON c.id = i.cliente_id
         WHERE c.id = ?
-        LIMIT 1 -- Garante que apenas um resultado seja retornado
+        LIMIT 1
     ");
     $stmtCliente->execute([$clienteId]);
     $cliente = $stmtCliente->fetch(PDO::FETCH_ASSOC);
@@ -44,7 +43,6 @@ try {
     }
     $response['cliente'] = $cliente;
 
-    // CORREÇÃO 2: Consulta de faturas com colunas explícitas para evitar ambiguidade
     $stmtFaturas = $pdo->prepare(
         "SELECT 
             faturas.id, 
@@ -68,7 +66,6 @@ try {
 
 } catch (PDOException $e) {
     http_response_code(500);
-    // Retorna o detalhe do erro para facilitar a depuração, se necessário
     echo json_encode(['message' => 'Erro ao buscar dados no banco de dados.', 'details' => $e->getMessage()]);
 }
 ?>

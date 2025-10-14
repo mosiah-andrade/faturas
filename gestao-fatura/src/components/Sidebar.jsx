@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import './Sidebar.css';
+import { useAuth } from '../auth/AuthContext';
 import { 
-    FiHome, FiFilePlus, FiUserPlus, FiUsers, FiChevronsLeft, FiChevronsRight 
+    FiHome, FiFilePlus, FiUserPlus, FiUsers, FiChevronsLeft, FiChevronsRight, FiLogOut 
 } from 'react-icons/fi';
 
 const Sidebar = ({ 
@@ -12,6 +13,8 @@ const Sidebar = ({
     onCadastrarCliente, 
     onCadastrarIntegrador 
 }) => {
+  const { logout } = useAuth(); 
+
   return (
     <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
       <div className="sidebar-header">
@@ -41,6 +44,12 @@ const Sidebar = ({
             {!isCollapsed && <span className="nav-text">Cadastrar Integrador</span>}
         </button>
       </nav>
+      <div className="sidebar-footer">
+            <button onClick={logout} className='nav-link'>
+                <FiLogOut className="nav-icon" />
+                {!isCollapsed && <span className="nav-text">Sair</span>}
+            </button>
+        </div>
     </aside>
   );
 };

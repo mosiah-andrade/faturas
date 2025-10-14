@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Form.css';
 
 const API_BASE_URL = 'http://localhost/faturas/api/';
@@ -17,22 +17,61 @@ const Stepper = ({ currentStep }) => {
     );
 };
 
-const ClienteForm = ({ integradores }) => {
+const RadioButtonGroup = ({ label, name, options, selectedValue, onChange }) => {
+    return (
+        <div className="form-group radio-group">
+            <span className="radio-group-label">{label}</span>
+            <div className="radio-options">
+                {options.map(option => (
+                    <label 
+                        key={option.value}
+                        className={selectedValue === option.value ? 'selected' : ''}
+                    >
+                        <input
+                            type="radio"
+                            id={`${name}-${option.value}`}
+                            name={name}
+                            value={option.value}
+                            checked={selectedValue === option.value}
+                            onChange={onChange}
+                        />
+                        <span>{option.label}</span>
+                    </label>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+const ClienteForm = ({ integradores, preSelectedIds = {} }) => {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
-        integrador_id: '', nome: '', documento: '', telefone: '',
+        integrador_id: preSelectedIds.integradorId || '',
+        nome: '', documento: '', telefone: '',
         endereco_instalacao: '', codigo_uc: '', tipo_de_ligacao: 'Monofásica',
-        valor_tusd: '', valor_te: '', tipo_contrato: 'Monitoramento', tipo_instalacao: 'Beneficiária'
+        tipo_contrato: 'Investimento',
+        tipo_instalacao: 'Beneficiária',
+        regra_faturamento: 'Depois da Taxação'
     });
+
+    useEffect(() => {
+        setFormData(prev => ({
+            ...prev,
+            integrador_id: preSelectedIds.integradorId || ''
+        }));
+        setStep(1);
+    }, [preSelectedIds.integradorId]);
+
     const [errors, setErrors] = useState({});
     const [mensagem, setMensagem] = useState({ texto: '', tipo: '' });
     const [enviando, setEnviando] = useState(false);
 
     const handleChange = (e) => {
-        const { id, value } = e.target;
-        setFormData(prevState => ({ ...prevState, [id]: value }));
-        if (errors[id]) {
-            setErrors(prevErrors => ({ ...prevErrors, [id]: '' }));
+        const { id, name, value } = e.target;
+        const fieldName = name || id;
+        setFormData(prevState => ({ ...prevState, [fieldName]: value }));
+        if (errors[fieldName]) {
+            setErrors(prevErrors => ({ ...prevErrors, [fieldName]: '' }));
         }
     };
 
@@ -55,7 +94,7 @@ const ClienteForm = ({ integradores }) => {
         const fieldsToValidate = {
             1: ['integrador_id', 'nome', 'documento'],
             2: ['endereco_instalacao', 'codigo_uc', 'tipo_de_ligacao'],
-            3: ['tipo_contrato', 'tipo_instalacao', 'valor_tusd', 'valor_te']
+            3: ['tipo_instalacao', 'regra_faturamento']
         };
 
         fieldsToValidate[step].forEach(field => {
@@ -100,16 +139,15 @@ const ClienteForm = ({ integradores }) => {
             setMensagem({ texto: result.message, tipo: 'success' });
             setStep(1);
             setFormData({
-                integrador_id: '', nome: '', documento: '', telefone: '',
+                integrador_id: preSelectedIds.integradorId || '', nome: '', documento: '', telefone: '',
                 endereco_instalacao: '', codigo_uc: '', tipo_de_ligacao: 'Monofásica',
-                valor_tusd: '', valor_te: '', tipo_contrato: 'Monitoramento', tipo_instalacao: 'Beneficiária'
+                tipo_contrato: 'Investimento', tipo_instalacao: 'Beneficiária',
+                regra_faturamento: 'Depois da Taxação'
             });
 
         } catch (error) {
-            // CORREÇÃO: Bloco catch agora está sintaticamente correto
             setMensagem({ texto: error.message, tipo: 'error' });
         } finally {
-            // Este bloco agora será executado sempre, mesmo em caso de erro
             setEnviando(false);
         }
     };
@@ -122,7 +160,7 @@ const ClienteForm = ({ integradores }) => {
                         <legend>Passo 1: Dados do Cliente</legend>
                         <div className="form-group">
                           <label htmlFor="integrador_id">Integrador Responsável:</label>
-                          <select id="integrador_id" value={formData.integrador_id} onChange={handleChange} onBlur={handleBlur} className={errors.integrador_id ? 'error-input' : ''} required>
+                          <select id="integrador_id" value={formData.integrador_id} onChange={handleChange} onBlur={handleBlur} className={errors.integrador_id ? 'error-input' : ''} required disabled={!!preSelectedIds.integradorId}>
                             <option value="">-- Selecione --</option>
                             {Array.isArray(integradores) && integradores.map(integrador => (
                               <option key={integrador.id} value={integrador.id}>{integrador.nome_do_integrador}</option>
@@ -181,34 +219,26 @@ const ClienteForm = ({ integradores }) => {
                     <fieldset className="form-section">
                         <legend>Passo 3: Dados do Contrato</legend>
                         <div className="form-row">
-                          <div className="form-group">
-                              <label htmlFor="tipo_contrato">Tipo de Contrato:</label>
-                              <select id="tipo_contrato" value={formData.tipo_contrato} onChange={handleChange} onBlur={handleBlur} className={errors.tipo_contrato ? 'error-input' : ''} required>
-                                <option value="Monitoramento">Monitoramento</option>
-                                <option value="Investimento">Investimento</option>
-                              </select>
-                              <div className="error-text">{errors.tipo_contrato}</div>
-                          </div>
-                          <div className="form-group">
-                              <label htmlFor="tipo_instalacao">Tipo de Instalação:</label>
-                              <select id="tipo_instalacao" value={formData.tipo_instalacao} onChange={handleChange} onBlur={handleBlur} className={errors.tipo_instalacao ? 'error-input' : ''} required>
-                                <option value="Beneficiária">Beneficiária</option>
-                                <option value="Geradora">Geradora</option>
-                              </select>
-                              <div className="error-text">{errors.tipo_instalacao}</div>
-                          </div>
-                        </div>
-                        <div className="form-row">
-                            <div className="form-group">
-                                <label htmlFor="valor_tusd">Valor TUSD (R$):</label>
-                                <input type="number" step="0.000001" id="valor_tusd" value={formData.valor_tusd} onChange={handleChange} onBlur={handleBlur} className={errors.valor_tusd ? 'error-input' : ''} placeholder="Ex: 0.567890" required />
-                                <div className="error-text">{errors.valor_tusd}</div>
-                            </div>
-                            <div className="form-group">
-                                <label htmlFor="valor_te">Valor TE (R$):</label>
-                                <input type="number" step="0.000001" id="valor_te" value={formData.valor_te} onChange={handleChange} onBlur={handleBlur} className={errors.valor_te ? 'error-input' : ''} placeholder="Ex: 0.432109" required />
-                                <div className="error-text">{errors.valor_te}</div>
-                            </div>
+                            <RadioButtonGroup
+                                label="Tipo de Instalação:"
+                                name="tipo_instalacao"
+                                selectedValue={formData.tipo_instalacao}
+                                onChange={handleChange}
+                                options={[
+                                    { value: 'Beneficiária', label: 'Beneficiária' },
+                                    { value: 'Geradora', label: 'Geradora' }
+                                ]}
+                            />
+                            <RadioButtonGroup
+                                label="Regra de Faturamento:"
+                                name="regra_faturamento"
+                                selectedValue={formData.regra_faturamento}
+                                onChange={handleChange}
+                                options={[
+                                    { value: 'Depois da Taxação', label: 'Depois da Taxação' },
+                                    { value: 'Antes da Taxação', label: 'Antes da Taxação' }
+                                ]}
+                            />
                         </div>
                     </fieldset>
                 );

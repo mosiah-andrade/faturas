@@ -163,3 +163,53 @@ button:disabled {
 .form-group select.error-input {
   border-color: #dc3545;
 }
+
+/* --- ESTILOS PARA GRUPO DE RÁDIO --- */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.radio-group .radio-group-label {
+  display: block;
+  margin-bottom: 0;
+  font-weight: 600;
+  color: #495057;
+}
+
+.radio-options {
+  display: flex;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #ced4da;
+}
+
+.radio-options label {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  cursor: pointer;
+  background-color: #f8f9fa;
+  color: #495057;
+  transition: all 0.2s ease-in-out;
+  border-right: 1px solid #ced4da;
+}
+
+.radio-options label:last-child {
+  border-right: none;
+}
+
+.radio-options input[type="radio"] {
+  display: none; /* Esconde a bolinha padrão do rádio */
+}
+
+.radio-options input[type="radio"]:checked + span {
+  font-weight: bold;
+}
+
+.radio-options label.selected {
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+}

@@ -15,20 +15,19 @@ try {
     
     if (empty($_GET['fatura_id'])) {
         http_response_code(400);
-        echo json_encode(['message' => 'O ID da fatura é obrigatório.']);
-        exit();
+        die(json_encode(['message' => 'O ID da fatura é obrigatório.']));
     }
 
     $faturaId = $_GET['fatura_id'];
     $response = [];
 
-    // CORREÇÃO: A coluna "c.email as cliente_email" foi removida da consulta
+    // CORREÇÃO: Adicionada a coluna "f.cliente_id" à consulta
     $stmt = $pdo->prepare("
         SELECT 
             f.id, f.mes_referencia, f.data_emissao, f.data_vencimento, f.valor_total, f.status,
-            f.valor_kwh, f.taxa_minima, f.percentual_desconto, f.subtotal, f.valor_desconto,
+            f.taxa_minima, f.percentual_desconto, f.subtotal, f.valor_desconto, f.cliente_id,
             c.nome as cliente_nome, c.documento as cliente_documento,
-            i.codigo_uc, i.endereco_instalacao, i.tipo_de_ligacao, i.valor_tusd, i.valor_te, i.tipo_contrato,
+            i.codigo_uc, i.endereco_instalacao, i.tipo_de_ligacao, i.tipo_contrato,
             lm.consumo_kwh, lm.injecao_kwh, lm.data_leitura
         FROM faturas f
         JOIN clientes c ON f.cliente_id = c.id
@@ -41,8 +40,7 @@ try {
 
     if (!$fatura) {
         http_response_code(404);
-        echo json_encode(['message' => 'Fatura não encontrada.']);
-        exit();
+        die(json_encode(['message' => 'Fatura não encontrada.']));
     }
     $response['fatura'] = $fatura;
 
@@ -56,6 +54,6 @@ try {
 
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(['message' => 'Erro ao buscar detalhes da fatura.', 'details' => $e->getMessage()]);
+    die(json_encode(['message' => 'Erro ao buscar detalhes da fatura.', 'details' => $e->getMessage()]));
 }
 ?>

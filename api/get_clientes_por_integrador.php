@@ -1,10 +1,7 @@
 <?php
 // faturas/api/get_clientes_por_integrador.php
-
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Origin: *");
-
-// ADICIONE ESTAS 3 LINHAS PARA DESABILITAR O CACHE
 header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
@@ -20,17 +17,13 @@ try {
         echo json_encode(['message' => 'O ID do integrador é obrigatório.']);
         exit();
     }
-
+    
     $integradorId = $_GET['integrador_id'];
     
-    // Consulta atualizada para incluir os tipos de contrato e instalação
+    // CORREÇÃO: Adicionada a coluna i.regra_faturamento
     $sql = "SELECT 
-                c.id as cliente_id, 
-                c.nome, 
-                i.id,
-                i.codigo_uc,
-                i.tipo_contrato,
-                i.tipo_instalacao
+                c.id as cliente_id, c.nome, i.id, i.codigo_uc,
+                i.tipo_contrato, i.tipo_instalacao, i.regra_faturamento
             FROM clientes c
             JOIN instalacoes i ON c.id = i.cliente_id
             WHERE i.integrador_id = ?";

@@ -25,8 +25,7 @@ try {
     if (
         empty($data->integrador_id) || empty($data->nome) || empty($data->documento) || 
         empty($data->codigo_uc) || empty($data->endereco_instalacao) ||
-        !isset($data->valor_tusd) || !isset($data->valor_te) ||
-        empty($data->tipo_contrato) || empty($data->tipo_instalacao)
+        empty($data->tipo_instalacao)
     ) {
         http_response_code(400);
         echo json_encode(['message' => 'Todos os campos obrigatórios devem ser preenchidos.']);
@@ -41,11 +40,10 @@ try {
     $stmtCliente->execute([$data->nome, $data->documento, $data->telefone ?? null, $data->endereco_instalacao]);
     $clienteId = $pdo->lastInsertId();
 
-    // Inserção na tabela 'instalacoes' (sem alteração nesta parte)
     $sqlInstalacao = "INSERT INTO instalacoes (
                         cliente_id, integrador_id, codigo_uc, endereco_instalacao, tipo_de_ligacao, 
-                        valor_tusd, valor_te, tipo_contrato, tipo_instalacao
-                      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                        tipo_contrato, tipo_instalacao, regra_faturamento
+                      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     $stmtInstalacao = $pdo->prepare($sqlInstalacao);
     $stmtInstalacao->execute([
         $clienteId, 
@@ -53,10 +51,9 @@ try {
         $data->codigo_uc, 
         $data->endereco_instalacao, 
         $data->tipo_de_ligacao ?? 'Monofásica',
-        (float)($data->valor_tusd ?? 0),
-        (float)($data->valor_te ?? 0),
-        $data->tipo_contrato ?? 'Monitoramento',
-        $data->tipo_instalacao ?? 'Beneficiária'
+        'Investimento', // Valor fixo
+        $data->tipo_instalacao ?? 'Beneficiária',
+        $data->regra_faturamento ?? 'Depois da Taxação'
     ]);
 
     $pdo->commit();

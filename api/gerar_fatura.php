@@ -28,7 +28,7 @@ try {
 
     $instalacaoId = $data->instalacao_id;
 
-    $stmtInst = $pdo->prepare("SELECT cliente_id, tipo_contrato, tipo_instalacao, valor_tusd, valor_te FROM instalacoes WHERE id = ?");
+    $stmtInst = $pdo->prepare("SELECT cliente_id, tipo_contrato, tipo_instalacao, regra_faturamento FROM instalacoes WHERE id = ?");
     $stmtInst->execute([$instalacaoId]);
     $instalacao = $stmtInst->fetch();
 
@@ -38,15 +38,17 @@ try {
 
     $pdo->beginTransaction();
     
+    // Variáveis
     $valorFinal = 0;
     $subtotal = 0;
     $valorDesconto = 0;
-    $percentualDesconto = 0;
+    $percentualDesconto = (int)($data->percentual_desconto ?? 0);
+    $consumoEmReais = (float)($data->consumo_kwh ?? 0);
+    $taxaMinima = (float)($data->taxa_minima ?? 0);
     
-    $consumoKwh = (float)($data->consumo_kwh ?? 0);
+    // Outras variáveis
     $injecaoKwh = (float)($data->injecao_kwh ?? 0);
     $creditos = (float)($data->creditos ?? 0);
-    $taxaMinima = (float)($data->taxa_minima ?? 0);
     $dataLeitura = $data->data_leitura ?? null;
     $numeroDias = isset($data->numero_dias) ? (int)$data->numero_dias : null;
     $dataVencimento = $data->data_vencimento ?? null;
@@ -55,13 +57,23 @@ try {
         if (!isset($data->consumo_kwh) || empty($data->data_leitura) || !isset($data->numero_dias) || empty($data->data_vencimento)) {
             throw new Exception("Para Investimento, Consumo, Data da Leitura, Nº de Dias e Vencimento são obrigatórios.");
         }
-        $valor_kwh_total = (float)$instalacao['valor_tusd'] + (float)$instalacao['valor_te'];
-        $subtotal = ($consumoKwh * $valor_kwh_total) + $taxaMinima;
         
-        $percentualDesconto = (int)($data->percentual_desconto ?? 0);
-        $valorDesconto = $subtotal * ($percentualDesconto / 100);
-        
-        $valorFinal = $subtotal - $valorDesconto;
+        // CORREÇÃO DA LÓGICA DE CÁLCULO
+        if ($instalacao['regra_faturamento'] == 'Antes da Taxação') {
+            // Subtotal é a soma de tudo antes do desconto
+            $subtotal = $consumoEmReais + $taxaMinima;
+            // Desconto é calculado sobre o subtotal
+            $valorDesconto = $subtotal * ($percentualDesconto / 100);
+            // Valor final é o subtotal menos o desconto
+            $valorFinal = $subtotal - $valorDesconto;
+        } else { // 'Depois da Taxação' (padrão)
+            // Subtotal continua sendo a soma de tudo para clareza
+            $subtotal = $consumoEmReais + $taxaMinima;
+            // Desconto é calculado apenas sobre o consumo
+            $valorDesconto = $consumoEmReais * ($percentualDesconto / 100);
+            // Valor final é o consumo com desconto, mais a taxa mínima
+            $valorFinal = ($consumoEmReais - $valorDesconto) + $taxaMinima;
+        }
 
     } else { // Lógica para Monitoramento
         if (!isset($data->valor_total) || empty($data->data_vencimento) || empty($data->data_leitura)) {
@@ -77,18 +89,18 @@ try {
          VALUES (?, ?, ?, ?, ?, ?) 
          ON DUPLICATE KEY UPDATE consumo_kwh = VALUES(consumo_kwh), injecao_kwh = VALUES(injecao_kwh), data_leitura = VALUES(data_leitura), numero_dias = VALUES(numero_dias)"
     );
-    $stmtLeitura->execute([$instalacaoId, $data->mes_referencia . '-01', $consumoKwh, $injecaoKwh, $dataLeitura, $numeroDias]);
+    $stmtLeitura->execute([$instalacaoId, $data->mes_referencia . '-01', $consumoEmReais, $injecaoKwh, $dataLeitura, $numeroDias]);
 
-    // Insere a fatura principal (sem a coluna is_investment)
+    // Insere a fatura principal
     $stmtFatura = $pdo->prepare(
-        "INSERT INTO faturas (cliente_id, instalacao_id, mes_referencia, data_emissao, data_vencimento, valor_total, subtotal, valor_desconto, status, valor_kwh, taxa_minima, percentual_desconto, creditos) 
-         VALUES (?, ?, ?, CURDATE(), ?, ?, ?, ?, 'pendente', ?, ?, ?, ?)"
+        "INSERT INTO faturas (cliente_id, instalacao_id, mes_referencia, data_emissao, data_vencimento, valor_total, subtotal, valor_desconto, status, taxa_minima, percentual_desconto, creditos) 
+         VALUES (?, ?, ?, CURDATE(), ?, ?, ?, ?, 'pendente', ?, ?, ?)"
     );
     
     $stmtFatura->execute([
         $instalacao['cliente_id'], $instalacaoId, $data->mes_referencia . '-01',
         $dataVencimento, $valorFinal, $subtotal, $valorDesconto,
-        0.99, $taxaMinima, $percentualDesconto, $creditos
+        $taxaMinima, $percentualDesconto, $creditos
     ]);
     $faturaId = $pdo->lastInsertId();
     
