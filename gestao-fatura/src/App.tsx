@@ -9,11 +9,10 @@ import LoginPage from './pages/LoginPage'; // Importe a página de login
 import ProtectedRoute from './auth/ProtectedRoute'; // Importe a rota protegida
 import './App.css';
 
-const basename = import.meta.env.PROD ? '/faturas' : '/';
 
 function App() {
   return (
-    <Router basename={basename}>
+    <Router >
       <Routes>
         {/* Rota pública de login */}
         <Route path="/login" element={<LoginPage />} />
