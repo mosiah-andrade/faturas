@@ -4,7 +4,7 @@ import Container from '../components/Container';
 import './IntegradorPage.css';
 import { FiEye, FiFilePlus } from 'react-icons/fi';
 
-const API_BASE_URL = 'http://localhost/faturas/api/';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const IntegradorPage = () => {
   const { integradorId } = useParams();

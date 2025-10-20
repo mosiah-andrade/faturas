@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Form.css';
 
-const API_BASE_URL = 'http://localhost/faturas/api/';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const IntegradorForm = ({ onCadastroSucesso, initialName = '' }) => {
   // O estado 'nome' agora começa com o valor de initialName

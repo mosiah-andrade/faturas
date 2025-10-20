@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+# Ignorar arquivos de configuração com dados sensíveis
+config.dev.php
+config.prod.php
+
+# Se você ainda tiver o .env, mantenha-o ignorado
+.env

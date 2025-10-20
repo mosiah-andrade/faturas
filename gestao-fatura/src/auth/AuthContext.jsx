@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-const API_BASE_URL = 'http://localhost/faturas/api/';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const AuthContext = createContext(null);
 

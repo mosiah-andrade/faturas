@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import Container from '../components/Container';
 import './FaturaDetalhesPage.css';
 
-const API_BASE_URL = 'http://localhost/faturas/api/';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const FaturaDetalhesPage = () => {
     const { faturaId } = useParams();

@@ -11,9 +11,9 @@ class Database {
     private $password;
 
     private function __construct() {
+        // O arquivo config.php já seleciona o ambiente correto para nós
         $configFile = __DIR__ . '/../config.php';
         if (!file_exists($configFile)) {
-            // Lança uma exceção se o arquivo de config não for encontrado
             throw new Exception("Arquivo de configuração não encontrado.");
         }
         $config = require $configFile;
@@ -29,7 +29,6 @@ class Database {
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->conn->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
         } catch(PDOException $e) {
-            // Lança uma exceção em caso de falha na conexão
             throw new Exception("Erro de conexão: " . $e->getMessage());
         }
     }

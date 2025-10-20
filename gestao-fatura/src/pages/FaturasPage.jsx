@@ -7,7 +7,7 @@ import './FaturasPage.css';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-const API_BASE_URL = 'http://localhost/faturas/api/';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const FaturasPage = () => {
     const { clienteId } = useParams();

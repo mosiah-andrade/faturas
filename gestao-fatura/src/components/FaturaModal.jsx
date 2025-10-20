@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Modal.css';
 import './Form.css';
 
-const API_BASE_URL = 'http://localhost/faturas/api/';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, integradores = [] }) => {
     const [selectedIntegrador, setSelectedIntegrador] = useState('');

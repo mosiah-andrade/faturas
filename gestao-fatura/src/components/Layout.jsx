@@ -6,7 +6,7 @@ import ClienteModal from './ClienteModal';
 import IntegradorModal from './IntegradorModal';
 import './Layout.css';
 
-const API_BASE_URL = 'http://localhost/faturas/api/';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const Layout = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
