@@ -78,3 +78,31 @@
     text-align: center;
     margin-bottom: 15px;
 }
+.password-wrapper {
+    position: relative; /* Essencial para posicionar o ícone dentro dele */
+    width: 100%;
+}
+
+.password-toggle-btn {
+    position: absolute;
+    top: 75%; /* Alinha o botão verticalmente */
+    right: 10px; /* Distância da borda direita */
+    transform: translateY(-50%); /* Ajuste fino do alinhamento vertical */
+    
+    /* Estilo do botão */
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    width: auto;
+    
+    /* Cor do ícone - AQUI ESTÁ A CORREÇÃO! */
+    color: #6c757d; 
+    font-size: 18px; /* Tamanho do ícone */
+    display: flex;
+    align-items: center;
+}
+
+.password-toggle-btn:hover {
+    color: #343a40; /* Cor ao passar o mouse */
+}

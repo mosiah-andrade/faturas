@@ -11,6 +11,10 @@ label {
 
 input[type="text"],
 input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="month"],
 select {
     width: 100%;
     padding: 12px;
@@ -20,6 +24,8 @@ select {
     font-size: 16px;
     background-color: #fff;
     color: #495057;
+    height: 48px;
+    color-scheme: light; 
 }
 
 button {
@@ -208,6 +214,30 @@ button:disabled {
   font-weight: bold;
 }
 
+.radio-options label.selected {
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+}
+.radio-options {
+  display: flex;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #ced4da;
+}
+
+.radio-options label {
+  flex: 1;
+  text-align: center;
+  padding: 10px;
+  cursor: pointer;
+  /* Cor de fundo para o botão não selecionado (não é transparente) */
+  background-color: #f8f9fa; 
+  color: #495057;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Cor de fundo para o botão selecionado (também não é transparente) */
 .radio-options label.selected {
   background-color: #007bff;
   color: white;

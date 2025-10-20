@@ -2,7 +2,7 @@
 // faturas/api/cors.php
 
 // Define a origem permitida (sua aplicação React)
-header("Access-Control-Allow-Origin: http://localhost:5173");
+header("Access-Control-Allow-Origin: http://localhost:5174");
 
 // Permite o envio de credenciais (necessário para o sistema de login)
 header("Access-Control-Allow-Credentials: true");
