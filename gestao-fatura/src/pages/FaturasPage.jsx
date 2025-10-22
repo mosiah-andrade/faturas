@@ -239,7 +239,7 @@ const FaturasPage = () => {
                                                     e.stopPropagation(); // Previne o clique na linha (tr)
                                                     navigate(`/fatura/${fatura.id}`)
                                                 }} 
-                                                className="btn-acao"
+                                                className="btn-orange"
                                             >
                                                 Detalhes
                                             </button>
@@ -249,7 +249,7 @@ const FaturasPage = () => {
                                                     e.stopPropagation(); // Previne o clique na linha (tr)
                                                     handleExportPDF(fatura.id);
                                                 }} 
-                                                className="btn-acao btn-pdf" // Classe de estilo
+                                                className="btn-orange" // Classe de estilo
                                                 disabled={isGeneratingPdf === fatura.id}
                                             >
                                                 {isGeneratingPdf === fatura.id ? 'Gerando...' : 'PDF'}
@@ -266,9 +266,9 @@ const FaturasPage = () => {
                     </table>
                 </>
             )}
-            <button onClick={() => navigate(-1)} className="back-link">
+            <a onClick={() => navigate(-1)} className="back-link">
                 &larr; Voltar
-            </button>
+            </a>
         </Container>
     );
 };

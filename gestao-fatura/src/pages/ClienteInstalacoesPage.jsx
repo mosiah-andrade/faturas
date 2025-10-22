@@ -82,7 +82,7 @@ const ClienteInstalacoesPage = () => {
                         <tbody>
                             {instalacoes.length > 0 ? (
                                 instalacoes.map(inst => (
-                                    <tr key={inst.id}>
+                                    <tr key={inst.id} className="linha">
                                         <td>{inst.id}</td>
                                         <td>{inst.codigo_uc}</td>
                                         <td>{inst.endereco_instalacao}</td>
@@ -112,9 +112,9 @@ const ClienteInstalacoesPage = () => {
                 clienteId={clienteId} // Passa o ID do cliente
                 integradorId={integradorId} // Passa o ID do integrador
             />
-           <button onClick={() => navigate(-1)} className="back-link">
+           <a onClick={() => navigate(-1)} className="back-link">
                 &larr; Voltar
-            </button>
+            </a>
         </Container>
     );
 };

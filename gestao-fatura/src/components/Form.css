@@ -28,8 +28,9 @@ select {
     color-scheme: light; 
 }
 
-button {
+.button {
     width: 100%;
+    max-width: 250px;
     padding: 12px;
     color: white;
     border: none;

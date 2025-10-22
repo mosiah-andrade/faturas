@@ -11,12 +11,62 @@
     color: #6c757d;
     font-size: 1em;
 }
-
-.header-actions {
+.faturas-header {
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 20px;
+    margin-bottom: 30px;
+}  
+.faturas-actions{
     display: flex;
-    justify-content: space-between;
+    flex-direction: row;
     align-items: center;
     margin-bottom: 20px;
+    gap: 10px;
+    justify-content: right;
+} 
+.btn-novo {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px; 
+    margin-right: 20px;
+}
+.btn-gerar{
+    background-color: #007bff;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+}
+.back-link{
+    display: block;
+    text-align: center;
+    margin-top: 30px;
+    color: #ff9900;
+    font-weight: 600;
+    text-decoration: none;
+    background-color: transparent;
+}
+.back-link:hover{
+    cursor: pointer;
+}
+tr{
+    text-align: center;
+}
+.btn-orange{
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px; 
+    margin: 20px;
+    justify-self: right;
 }
 .header-actions h2 {
     margin: 0;
@@ -62,10 +112,10 @@
 }
 
 /* Estilos de cor para o select */
-.status-paga { background-color: #d1e7dd; color: #0f5132; }
-.status-pendente { background-color: #fff3cd; color: #664d03; }
-.status-vencida { background-color: #f8d7da; color: #842029; }
-.status-cancelada { background-color: #e2e3e5; color: #41464b; }
+.status-paga { background-color: #d1e7dd; color: #0f5132; padding:8px; border-radius: 10px; border: solid 1px #02361e;}
+.status-pendente { background-color: #fff3cd; color: #664d03; padding:8px; border-radius: 10px; border: solid 1px #362902;}
+.status-vencida { background-color: #f8d7da; color: #842029; padding:8px; border-radius: 10px; border: solid 1px #53040b;}
+.status-cancelada { background-color: #e2e3e5; color: #41464b; padding:8px; border-radius: 10px; border: solid 1px rgb(31, 24, 3);}
 
 .pdf-btn {
     background-color: #dc3545;

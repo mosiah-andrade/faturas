@@ -108,7 +108,7 @@ const FaturaDetalhesPage = () => {
                     >
                         {isGeneratingPDF ? 'Gerando...' : 'Exportar PDF'}
                     </button>
-                    <button onClick={() => navigate(-1)} className="back-link" style={{margin: 0}}>&larr; Voltar</button>
+                    
                 </div>
             </div>
             <div className="detalhes-card status-card">
@@ -144,6 +144,7 @@ const FaturaDetalhesPage = () => {
                     <p><strong>Contrato:</strong> {fatura.tipo_contrato}</p>
                 </div>
             </div>
+            <a onClick={() => navigate(-1)} className="back-link" style={{margin: 0}}>&larr; Voltar</a>
         </Container>
     );
 };
