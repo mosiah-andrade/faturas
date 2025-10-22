@@ -20,7 +20,7 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
             try {
                 const response = await fetch(url);
                 const data = await response.json();
-                setInstalacoes(response.ok ? data : []);
+                setInstalacoes(response.ok ? data.instalacoes : []);
             } catch (error) {
                 setInstalacoes([]);
             } finally {
@@ -29,9 +29,9 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
         };
         const targetIntegrador = preSelectedIds.integradorId || selectedIntegrador;
         if (isOpen && preSelectedIds.clienteId) {
-            fetchInstalacoes(`${API_BASE_URL}get_instalacoes_por_cliente.php?cliente_id=${preSelectedIds.clienteId}`);
+            fetchInstalacoes(`${API_BASE_URL}/get_instalacoes_por_cliente.php?cliente_id=${preSelectedIds.clienteId}`);
         } else if (isOpen && targetIntegrador) {
-            fetchInstalacoes(`${API_BASE_URL}get_clientes_por_integrador.php?integrador_id=${targetIntegrador}`);
+            fetchInstalacoes(`${API_BASE_URL}/get_clientes_por_integrador.php?integrador_id=${targetIntegrador}`);
         } else {
             setInstalacoes([]);
         }
@@ -129,7 +129,7 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
         console.log("%c--- FIM DO CÁLCULO (FRONTEND) ---", "color: blue; font-weight: bold;");
 
         try {
-            const response = await fetch(`${API_BASE_URL}gerar_fatura.php`, {
+            const response = await fetch(`${API_BASE_URL}/gerar_fatura.php`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });
@@ -173,9 +173,9 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
                             <label htmlFor="instalacao_id_select">2. Selecione a Instalação:</label>
                             <select id="instalacao_id_select" value={formData.instalacao_id} onChange={handleInstalacaoChange} required disabled={loadingInstalacoes}>
                                 <option value="">{loadingInstalacoes ? "Carregando..." : "-- Selecione --"}</option>
-                                {instalacoes.map(inst => (
+                                {Array.isArray(instalacoes) && instalacoes.map(inst => (
                                     <option key={inst.id} value={inst.id}>
-                                        {inst.nome ? `${inst.nome} - ` : ''}UC: {inst.codigo_uc}
+                                        {inst.codigo_uc} - {inst.endereco_instalacao}
                                     </option>
                                 ))}
                             </select>

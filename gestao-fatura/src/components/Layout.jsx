@@ -18,7 +18,7 @@ const Layout = () => {
 
   const fetchIntegradores = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}listar_integradores.php`);
+      const response = await fetch(`${API_BASE_URL}/listar_integradores.php`);
       if (!response.ok) throw new Error("Falha ao buscar integradores");
       const data = await response.json();
       if (Array.isArray(data)) {

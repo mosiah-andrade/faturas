@@ -1,67 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './Form.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const Stepper = ({ currentStep }) => {
-    const steps = ["Dados do Cliente", "Dados da Instalação", "Dados do Contrato"];
-    return (
-        <div className="form-stepper">
-            {steps.map((label, index) => (
-                <div key={label} className={`step ${index + 1 === currentStep ? 'active' : ''} ${index + 1 < currentStep ? 'completed' : ''}`}>
-                    <div className="step-indicator">{index + 1}</div>
-                    <div className="step-label">{label}</div>
-                </div>
-            ))}
-        </div>
-    );
-};
-
-const RadioButtonGroup = ({ label, name, options, selectedValue, onChange }) => {
-    return (
-        <div className="form-group radio-group">
-            <span className="radio-group-label">{label}</span>
-            <div className="radio-options">
-                {options.map(option => (
-                    <label 
-                        key={option.value}
-                        className={selectedValue === option.value ? 'selected' : ''}
-                    >
-                        <input
-                            type="radio"
-                            id={`${name}-${option.value}`}
-                            name={name}
-                            value={option.value}
-                            checked={selectedValue === option.value}
-                            onChange={onChange}
-                        />
-                        <span>{option.label}</span>
-                    </label>
-                ))}
-            </div>
-        </div>
-    );
-};
+// --- REMOVIDO: Componente Stepper e RadioButtonGroup (não são mais necessários aqui) ---
 
 const ClienteForm = ({ integradores, preSelectedIds = {} }) => {
-    const [step, setStep] = useState(1);
+    // --- MUDANÇA: Remoção do 'step' ---
     const [formData, setFormData] = useState({
-        integrador_id: preSelectedIds.integradorId || '',
-        nome: '', documento: '', telefone: '',
-        endereco_instalacao: '', codigo_uc: '', tipo_de_ligacao: 'Monofásica',
-        tipo_contrato: 'Investimento',
-        tipo_instalacao: 'Beneficiária',
-        regra_faturamento: 'Depois da Taxação'
+        nome: '',
+        documento: '',
+        telefone: '',
+        // --- REMOVIDO: Todos os outros campos (integrador_id, codigo_uc, etc.) ---
     });
 
-    useEffect(() => {
-        setFormData(prev => ({
-            ...prev,
-            integrador_id: preSelectedIds.integradorId || ''
-        }));
-        setStep(1);
-    }, [preSelectedIds.integradorId]);
-
+    // --- REMOVIDO: useEffect ---
+    
     const [errors, setErrors] = useState({});
     const [mensagem, setMensagem] = useState({ texto: '', tipo: '' });
     const [enviando, setEnviando] = useState(false);
@@ -88,16 +42,13 @@ const ClienteForm = ({ integradores, preSelectedIds = {} }) => {
         setErrors(prevErrors => ({ ...prevErrors, [id]: error }));
     };
 
-    const validateStep = () => {
+    // --- MUDANÇA: Validação de 1 passo ---
+    const validateForm = () => {
         let newErrors = {};
         let isValid = true;
-        const fieldsToValidate = {
-            1: ['integrador_id', 'nome', 'documento'],
-            2: ['endereco_instalacao', 'codigo_uc', 'tipo_de_ligacao'],
-            3: ['tipo_instalacao', 'regra_faturamento']
-        };
+        const fieldsToValidate = ['nome', 'documento'];
 
-        fieldsToValidate[step].forEach(field => {
+        fieldsToValidate.forEach(field => {
             const error = validateField(field, formData[field]);
             if (error) {
                 newErrors[field] = error;
@@ -109,23 +60,19 @@ const ClienteForm = ({ integradores, preSelectedIds = {} }) => {
         return isValid;
     };
 
-    const nextStep = () => {
-        if (validateStep()) {
-            setStep(prev => prev + 1);
-        }
-    };
-    const prevStep = () => setStep(prev => prev - 1);
+    // --- REMOVIDO: nextStep, prevStep, handleEnderecoChange ---
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!validateStep()) {
+        if (!validateForm()) {
             return;
         }
         setEnviando(true);
         setMensagem({ texto: '', tipo: '' });
 
         try {
-            const response = await fetch(`${API_BASE_URL}cadastrar_cliente.php`, {
+            // --- MUDANÇA: Chama o 'cadastrar_cliente.php' simplificado ---
+            const response = await fetch(`${API_BASE_URL}/cadastrar_cliente.php`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
@@ -137,13 +84,11 @@ const ClienteForm = ({ integradores, preSelectedIds = {} }) => {
             }
             
             setMensagem({ texto: result.message, tipo: 'success' });
-            setStep(1);
-            setFormData({
-                integrador_id: preSelectedIds.integradorId || '', nome: '', documento: '', telefone: '',
-                endereco_instalacao: '', codigo_uc: '', tipo_de_ligacao: 'Monofásica',
-                tipo_contrato: 'Investimento', tipo_instalacao: 'Beneficiária',
-                regra_faturamento: 'Depois da Taxação'
-            });
+            // Limpa o formulário
+            setFormData({ nome: '', documento: '', telefone: '' });
+            
+            // Você pode adicionar uma lógica para fechar o modal
+            // ou redirecionar o usuário aqui.
 
         } catch (error) {
             setMensagem({ texto: error.message, tipo: 'error' });
@@ -152,122 +97,41 @@ const ClienteForm = ({ integradores, preSelectedIds = {} }) => {
         }
     };
 
-    const renderStep = () => {
-        switch (step) {
-            case 1:
-                return (
-                    <fieldset className="form-section">
-                        <legend>Passo 1: Dados do Cliente</legend>
-                        <div className="form-group">
-                          <label htmlFor="integrador_id">Integrador Responsável:</label>
-                          <select id="integrador_id" value={formData.integrador_id} onChange={handleChange} onBlur={handleBlur} className={errors.integrador_id ? 'error-input' : ''} required disabled={!!preSelectedIds.integradorId}>
-                            <option value="">-- Selecione --</option>
-                            {Array.isArray(integradores) && integradores.map(integrador => (
-                              <option key={integrador.id} value={integrador.id}>{integrador.nome_do_integrador}</option>
-                            ))}
-                          </select>
-                          <div className="error-text">{errors.integrador_id}</div>
-                        </div>
-                        <div className="form-row">
-                          <div className="form-group">
-                              <label htmlFor="nome">Nome Completo:</label>
-                              <input type="text" id="nome" value={formData.nome} onChange={handleChange} onBlur={handleBlur} className={errors.nome ? 'error-input' : ''} required />
-                              <div className="error-text">{errors.nome}</div>
-                          </div>
-                          <div className="form-group">
-                              <label htmlFor="documento">CPF/CNPJ:</label>
-                              <input type="text" id="documento" value={formData.documento} onChange={handleChange} onBlur={handleBlur} className={errors.documento ? 'error-input' : ''} required />
-                              <div className="error-text">{errors.documento}</div>
-                          </div>
-                        </div>
-                        <div className="form-group">
-                          <label htmlFor="telefone">Telefone (Opcional):</label>
-                          <input type="text" id="telefone" value={formData.telefone} onChange={handleChange} />
-                          <div className="error-text"></div>
-                        </div>
-                    </fieldset>
-                );
-            case 2:
-                return (
-                    <fieldset className="form-section">
-                        <legend>Passo 2: Dados da Instalação</legend>
-                        <div className="form-group">
-                            <label htmlFor="endereco_instalacao">Endereço da Instalação:</label>
-                            <input type="text" id="endereco_instalacao" value={formData.endereco_instalacao} onChange={handleChange} onBlur={handleBlur} className={errors.endereco_instalacao ? 'error-input' : ''} required />
-                            <div className="error-text">{errors.endereco_instalacao}</div>
-                        </div>
-                        <div className="form-row">
-                          <div className="form-group">
-                              <label htmlFor="codigo_uc">Cód. Unidade Consumidora (UC):</label>
-                              <input type="text" id="codigo_uc" value={formData.codigo_uc} onChange={handleChange} onBlur={handleBlur} className={errors.codigo_uc ? 'error-input' : ''} required />
-                              <div className="error-text">{errors.codigo_uc}</div>
-                          </div>
-                          <div className="form-group">
-                              <label htmlFor="tipo_de_ligacao">Tipo de Ligação:</label>
-                              <select id="tipo_de_ligacao" value={formData.tipo_de_ligacao} onChange={handleChange} onBlur={handleBlur} className={errors.tipo_de_ligacao ? 'error-input' : ''} required>
-                                <option value="Monofásica">Monofásica</option>
-                                <option value="Bifásica">Bifásica</option>
-                                <option value="Trifásica">Trifásica</option>
-                              </select>
-                              <div className="error-text">{errors.tipo_de_ligacao}</div>
-                          </div>
-                        </div>
-                    </fieldset>
-                );
-            case 3:
-                return (
-                    <fieldset className="form-section">
-                        <legend>Passo 3: Dados do Contrato</legend>
-                        <div className="form-row">
-                            <RadioButtonGroup
-                                label="Tipo de Instalação:"
-                                name="tipo_instalacao"
-                                selectedValue={formData.tipo_instalacao}
-                                onChange={handleChange}
-                                options={[
-                                    { value: 'Beneficiária', label: 'Beneficiária' },
-                                    { value: 'Geradora', label: 'Geradora' }
-                                ]}
-                            />
-                            <RadioButtonGroup
-                                label="Regra de Faturamento:"
-                                name="regra_faturamento"
-                                selectedValue={formData.regra_faturamento}
-                                onChange={handleChange}
-                                options={[
-                                    { value: 'Depois da Taxação', label: 'Depois da Taxação' },
-                                    { value: 'Antes da Taxação', label: 'Antes da Taxação' }
-                                ]}
-                            />
-                        </div>
-                    </fieldset>
-                );
-            default:
-                return null;
-        }
-    };
-
+    // --- MUDANÇA: renderStep() removido, formulário direto ---
     return (
         <form onSubmit={handleSubmit} noValidate>
-            <Stepper currentStep={step} />
+            {/* --- REMOVIDO: Stepper --- */}
             {mensagem.texto && !enviando && <div className={`message ${mensagem.tipo}`}>{mensagem.texto}</div>}
-            {renderStep()}
+            
+            <fieldset className="form-section">
+                <legend>Dados do Cliente</legend>
+                
+                {/* --- REMOVIDO: Campo Integrador --- */}
+
+                <div className="form-row">
+                    <div className="form-group">
+                        <label htmlFor="nome">Nome Completo:</label>
+                        <input type="text" id="nome" name="nome" value={formData.nome} onChange={handleChange} onBlur={handleBlur} className={errors.nome ? 'error-input' : ''} required />
+                        <div className="error-text">{errors.nome}</div>
+                    </div>
+                    <div className="form-group">
+                        <label htmlFor="documento">CPF/CNPJ:</label>
+                        <input type="text" id="documento" name="documento" value={formData.documento} onChange={handleChange} onBlur={handleBlur} className={errors.documento ? 'error-input' : ''} required />
+                        <div className="error-text">{errors.documento}</div>
+                    </div>
+                </div>
+                <div className="form-group">
+                    <label htmlFor="telefone">Telefone (Opcional):</label>
+                    <input type="text" id="telefone" name="telefone" value={formData.telefone} onChange={handleChange} />
+                    <div className="error-text"></div>
+                </div>
+            </fieldset>
+
+            {/* --- MUDANÇA: Botões de navegação simplificados --- */}
             <div className="form-navigation">
-                {step > 1 && (
-                    <button type="button" className="btn-secondary" onClick={prevStep}>
-                        Voltar
-                    </button>
-                )}
-                {step < 3 && (
-                    <button type="button" className="btn-blue" onClick={nextStep} style={{ marginLeft: 'auto' }}>
-                        Avançar
-                    </button>
-                )}
-                {step === 3 && (
-                    <button type="submit" className="btn-orange" disabled={enviando} style={{ marginLeft: 'auto' }}>
-                        {enviando ? 'Enviando...' : 'Cadastrar Cliente'}
-                    </button>
-                )}
+                <button type="submit" className="btn-orange" disabled={enviando} style={{ marginLeft: 'auto' }}>
+                    {enviando ? 'Enviando...' : 'Cadastrar Cliente'}
+                </button>
             </div>
         </form>
     );

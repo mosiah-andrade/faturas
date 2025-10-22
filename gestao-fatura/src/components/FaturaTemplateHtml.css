@@ -1,0 +1,168 @@
+/* Define o tamanho da "página" A4 em points (pt) */
+.pdf-template-container {
+    width: 595pt; 
+    height: 842pt;
+    padding: 40pt;
+    box-sizing: border-box; /* Importante para o padding */
+    font-family: 'Helvetica', Arial, sans-serif;
+    color: #000;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+}
+
+.pdf-header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30pt;
+}
+
+.pdf-logo {
+    width: 100pt;
+    height: auto;
+    object-fit: contain;
+}
+
+.pdf-logo-text {
+    font-size: 16pt;
+    font-weight: bold;
+    margin-left: 10pt;
+}
+
+.pdf-cliente-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9pt;
+    margin-bottom: 25pt;
+}
+
+.pdf-cliente-info .coluna {
+    width: 48%;
+}
+
+.info-bloco {
+    margin-bottom: 12pt;
+}
+.info-bloco strong {
+    display: block;
+    margin-bottom: 2px;
+}
+.info-bloco span {
+    font-weight: normal;
+}
+
+.pdf-titulo-secao {
+    text-align: center;
+    margin-bottom: 20pt;
+}
+.pdf-titulo-secao h2 {
+    font-size: 14pt;
+    font-weight: bold;
+    margin: 0 0 10pt 0;
+}
+.pdf-titulo-secao p {
+    font-size: 10pt;
+    margin: 3pt 0;
+}
+
+.pdf-corpo {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10pt;
+    flex-grow: 1; /* Faz esta seção crescer para empurrar o footer para baixo */
+}
+
+.coluna-detalhes {
+    width: 45%;
+}
+.coluna-historico {
+    width: 45%;
+}
+
+.pdf-detalhes-tabela {
+    width: 100%;
+    border-collapse: collapse;
+}
+.pdf-detalhes-tabela tr {
+    border-bottom: 1px solid #eee;
+}
+.pdf-detalhes-tabela td {
+    padding: 8pt 0;
+}
+.pdf-detalhes-tabela td:last-child {
+    text-align: right;
+}
+.pdf-detalhes-tabela tr.linha-total {
+    border-top: 1px solid #000;
+    font-size: 11pt;
+}
+
+.coluna-historico strong {
+    font-size: 11pt;
+    margin-bottom: 10pt;
+    display: block;
+}
+.pdf-historico-tabela {
+    width: 100%;
+    font-size: 10pt;
+    text-align: left;
+}
+.pdf-historico-tabela th, .pdf-historico-tabela td {
+    padding: 5pt 0;
+}
+.pdf-historico-tabela th {
+    border-bottom: 1px solid #ccc;
+}
+.pdf-historico-tabela td:last-child {
+    text-align: right;
+}
+
+.pdf-footer {
+    border-top: 1px solid #000;
+    padding-top: 15pt;
+    margin-top: 20pt;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+.pix-info {
+    font-size: 9pt;
+}
+.pix-info strong {
+    font-size: 11pt;
+    display: block;
+    margin-bottom: 5pt;
+}
+.pix-qr {
+    width: 100pt;
+    height: 100pt;
+    margin: 5pt 0;
+}
+.pix-info span {
+    display: block;
+    margin-top: 5pt;
+}
+.pix-valores {
+    text-align: right;
+}
+.valor-bloco {
+    margin-bottom: 10pt;
+}
+.valor-bloco span {
+    font-size: 10pt;
+    font-weight: bold;
+    display: block;
+}
+.valor-bloco strong {
+    font-size: 11pt;
+    font-weight: normal;
+    display: block;
+    margin-top: 3pt;
+}
+.pdf-aviso-comprovante {
+    font-size: 8pt;
+    font-style: italic;
+    margin-top: 15pt;
+}

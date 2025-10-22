@@ -21,7 +21,7 @@ const IntegradorForm = ({ onCadastroSucesso, initialName = '' }) => {
     setMensagem({ texto: '', tipo: '' });
 
     try {
-      const response = await fetch(`${API_BASE_URL}integrador.php`, {
+      const response = await fetch(`${API_BASE_URL}/integrador.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

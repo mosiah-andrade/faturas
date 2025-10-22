@@ -12,7 +12,7 @@ const PainelPrincipal = () => {
     const fetchIntegradores = async () => {
         try {
             setLoading(true);
-            const response = await fetch(`${API_BASE_URL}listar_integradores.php`);
+            const response = await fetch(`${API_BASE_URL}/listar_integradores.php`);
             if (!response.ok) throw new Error('Falha ao carregar integradores.');
             const data = await response.json();
             setIntegradores(data);
@@ -30,7 +30,7 @@ const PainelPrincipal = () => {
     const handleDelete = async (id) => {
         if (!window.confirm('Tem certeza que deseja excluir este integrador?')) return;
         try {
-            const response = await fetch(`${API_BASE_URL}delete_integrador.php?id=${id}`, {
+            const response = await fetch(`${API_BASE_URL}/delete_integrador.php?id=${id}`, {
                 method: 'DELETE',
             });
             const result = await response.json();
