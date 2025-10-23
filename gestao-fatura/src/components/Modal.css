@@ -13,6 +13,8 @@
 }
 
 .modal-content {
+  display: flex;
+  flex-direction: column;
   background-color: #fefefe;
   padding: 30px 40px;
   border-radius: 12px;
@@ -31,7 +33,22 @@
   font-weight: bold;
   cursor: pointer;
 }
-
+.modal-close-btn{
+  background-color: transparent;
+  color: #000911;
+  position: relative;
+  width: fit-content;
+  right: -570px;
+  top: -10px;
+  outline: transparent; 
+  border: transparent;
+}
+.modal-close-btn:hover, .close-btn:focus{
+  cursor: pointer;
+  color: #ff9900;
+  outline: transparent; 
+  border: transparent;
+}
 .close-btn:hover,
 .close-btn:focus {
   color: black;

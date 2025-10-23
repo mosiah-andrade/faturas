@@ -33,9 +33,7 @@
 }
 
 .clientes-section-header .action-btn {
-    background-color: #343a40;
     color: white;
-    border-radius: 20px;
     font-weight: 600;
     padding: 10px 20px;
 }
@@ -100,7 +98,6 @@
     width: 60px;
     height: 38px;
     padding: 0;
-    border-radius: 20px;
     font-size: 18px;
     transition: opacity 0.2s;
 }
@@ -109,17 +106,18 @@
     opacity: 0.85;
 }
 
-.ver-faturas-btn {
-    background-color: #28a745;
-}
 
 /* CORREÇÃO AQUI: A cor do ícone agora é branca */
 .ver-faturas-btn svg {
     color: white;
 }
 
-.gerar-fatura-btn {
-    background-color: #007bff;
+.gerar-fatura-btn,.ver-faturas-btn {
+    background-color: #031f7e;
+    border-radius: 8px;
+}
+.add-instalacao-btn{
+    background-color: #ff9900;
 }
 
 .back-link {

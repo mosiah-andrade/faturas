@@ -1,14 +1,30 @@
 // faturas/gestao-fatura/src/pages/FaturasPage.jsx
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react'; // 1. Importar useMemo
 import { useParams, useNavigate, useOutletContext } from 'react-router-dom';
 import Container from '../components/Container';
 import './FaturasPage.css';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import FaturaTemplateHtml from '../components/FaturaTemplateHtml'; // Importe o template
+import FaturaTemplateHtml from '../components/FaturaTemplateHtml'; 
+import { FiEye } from 'react-icons/fi';
+import { FaRegFilePdf, FaSpinner } from "react-icons/fa";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+// --- NOVA FUNÇÃO HELPER (FORA DO COMPONENTE) ---
+// Converte "MM/YYYY" para um número comparável (ex: "10/2025" -> 202510)
+const parseMesReferencia = (mesRef) => {
+    if (!mesRef || typeof mesRef !== 'string' || !mesRef.includes('/')) {
+        return 0; // Retorna 0 se o formato for inválido
+    }
+    const parts = mesRef.split('/');
+    if (parts.length !== 2) return 0;
+    const [mes, ano] = parts;
+    // Garante que o mês tenha dois dígitos (ex: '9' vira '09')
+    return parseInt(`${ano}${mes.padStart(2, '0')}`, 10);
+};
+
 
 const FaturasPage = () => {
     const { clienteId } = useParams();
@@ -24,150 +40,195 @@ const FaturasPage = () => {
     const [error, setError] = useState('');
     const [isModalOpen, setModalOpen] = useState(false);
 
-    // --- NOVOS ESTADOS PARA O PDF ---
-    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); // Armazena o ID da fatura sendo gerada
+    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false); 
     const [pdfData, setPdfData] = useState(null);
 
+    // --- 2. NOVO ESTADO PARA ORDENAÇÃO ---
+    // Padrão: 'mes_referencia' decrescente (mais recente primeiro)
+    const [sortConfig, setSortConfig] = useState({ key: 'mes_referencia', direction: 'descending' });
+
+
     const fetchData = async () => {
-        if (!clienteId) return;
-        setLoading(true);
-        try {
-            
-            // * =======================================================
-            // * CORREÇÃO 1: Adicionada a barra "/"
-            // * =======================================================
-            const resFaturas = await fetch(`${API_BASE_URL}/get_faturas.php?cliente_id=${clienteId}`);
-            const dataFaturas = await resFaturas.json();
-            
-            if (!resFaturas.ok) {
-                // Se der 404, o dataFaturas.message pode não existir
-                throw new Error(dataFaturas.message || `Erro ao buscar faturas (Status: ${resFaturas.status})`);
-            }
-            
-            setFaturas(dataFaturas.faturas || []);
-            setClienteNome(dataFaturas.cliente_nome);
-            setIntegradorId(dataFaturas.integrador_id); 
+        // ... (seu código fetchData permanece o mesmo)
+        if (!clienteId) return;
+        setLoading(true);
+        try {
+            const resFaturas = await fetch(`${API_BASE_URL}/get_faturas.php?cliente_id=${clienteId}`);
+            const dataFaturas = await resFaturas.json();
+            
+            if (!resFaturas.ok) {
+                throw new Error(dataFaturas.message || `Erro ao buscar faturas (Status: ${resFaturas.status})`);
+            }
+            
+            setFaturas(dataFaturas.faturas || []);
+            setClienteNome(dataFaturas.cliente_nome);
+            setIntegradorId(dataFaturas.integrador_id); 
 
-            // * =======================================================
-            // * CORREÇÃO 2: Adicionada a barra "/"
-            // * =======================================================
-            const resInstalacoes = await fetch(`${API_BASE_URL}/get_instalacoes_por_cliente.php?cliente_id=${clienteId}`);
-            const dataInstalacoes = await resInstalacoes.json();
-            
-            if (resInstalacoes.ok) {
-                setListaInstalacoes(dataInstalacoes.instalacoes || []);
-            } else {
-                console.error("Erro ao buscar instalações:", dataInstalacoes.message);
-                setListaInstalacoes([]); // <-- Se falhar, define a lista como vazia
-            }
+            const resInstalacoes = await fetch(`${API_BASE_URL}/get_instalacoes_por_cliente.php?cliente_id=${clienteId}`);
+            const dataInstalacoes = await resInstalacoes.json();
+            
+            if (resInstalacoes.ok) {
+                setListaInstalacoes(dataInstalacoes.instalacoes || []);
+            } else {
+                console.error("Erro ao buscar instalações:", dataInstalacoes.message);
+                setListaInstalacoes([]); 
+            }
 
-        } catch (error) {
-            console.error(error);
-            alert(error.message); 
-            setListaInstalacoes([]);
-        } finally {
-            setLoading(false);
-        }
+        } catch (error) {
+            console.error(error);
+            alert(error.message); 
+            setListaInstalacoes([]);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
         fetchData();
     }, [clienteId]);
 
-    const handleNovaInstalacao = () => {
-        openInstalacaoModal({
-            clienteId: clienteId,
-            integradorId: integradorId,
-            onSave: fetchData 
-        });
-    };
-
-    const handleNovaFatura = () => {
-        openFaturaModal({ 
-            clienteId: clienteId, 
-            integradorId: integradorId,
-            instalacoes: listaInstalacoes, 
-            onSave: fetchData 
-        });
-    };
-
-    const handleExportPDF = async (faturaId) => {
-        // ID da fatura que está sendo gerada, para o loading
-        setIsGeneratingPdf(faturaId); 
+    // --- 3. NOVA LÓGICA DE ORDENAÇÃO COM useMemo ---
+    const sortedFaturas = useMemo(() => {
+        let sortableItems = [...faturas]; 
         
-        try {
-            // 1. Buscar os dados da fatura E do histórico
-            // **** O ERRO 500 ESTÁ ACONTECENDO AQUI ****
-            const response = await fetch(`${API_BASE_URL}/get_detalhes_fatura.php?fatura_id=${faturaId}`);
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message);
-            
-            // 2. Colocar os dados no state. Isso fará o template invisível ser renderizado.
-            setPdfData(data);
+        if (sortConfig.key !== null) {
+            sortableItems.sort((a, b) => {
+                const aValue = a[sortConfig.key];
+                const bValue = b[sortConfig.key];
 
-            // 3. Esperar o React renderizar o template no DOM.
-            // Usamos setTimeout(..., 100) para garantir que o DOM foi atualizado.
-            setTimeout(async () => {
-                const templateElement = document.getElementById('pdf-template-wrapper');
-                if (!templateElement) {
-                    console.error("Erro: Não foi possível encontrar o elemento #pdf-template-wrapper.");
-                    alert("Erro ao gerar PDF: template não encontrado.");
-                    setIsGeneratingPdf(false);
-                    setPdfData(null);
-                    return;
+                // Lida com nulos ou indefinidos
+                if (aValue === null || aValue === undefined) return 1;
+                if (bValue === null || bValue === undefined) return -1;
+                if (aValue === bValue) return 0;
+
+                let comparison = 0;
+
+                // Tratamento especial para colunas específicas
+                switch (sortConfig.key) {
+                    case 'valor_total':
+                        // Comparação numérica
+                        comparison = parseFloat(aValue) - parseFloat(bValue);
+                        break;
+                    case 'data_vencimento':
+                        // Comparação de data (string YYYY-MM-DD funciona bem, mas Date é mais seguro)
+                        comparison = new Date(aValue) - new Date(bValue);
+                        break;
+                    case 'mes_referencia':
+                        // Comparação de "MM/YYYY" usando a função helper
+                        comparison = parseMesReferencia(aValue) - parseMesReferencia(bValue);
+                        break;
+                    default:
+                        // Comparação de string padrão (para 'codigo_uc' e 'status')
+                        comparison = aValue.toString().toLowerCase().localeCompare(bValue.toString().toLowerCase());
                 }
-                
-                // 4. Rodar o html2canvas para "fotografar" o template
-                const canvas = await html2canvas(templateElement, {
-                    scale: 2, // Aumenta a resolução da imagem
-                    useCORS: true // Para carregar imagens (logo, pix)
-                });
-                
-                const imgData = canvas.toDataURL('image/png');
 
-                // 5. Criar o PDF e adicionar a imagem
-                const doc = new jsPDF('p', 'pt', 'a4'); // p = portrait, pt = points, a4 = tamanho
-                const pdfWidth = doc.internal.pageSize.getWidth();
-                const pdfHeight = doc.internal.pageSize.getHeight();
-
-                const canvasWidth = canvas.width;
-                const canvasHeight = canvas.height;
-                
-                // Calcular a proporção para a imagem caber na página A4
-                const ratio = Math.min(pdfWidth / canvasWidth, pdfHeight / canvasHeight);
-                
-                const imgWidth = canvasWidth * ratio;
-                const imgHeight = canvasHeight * ratio;
-                
-                // Centralizar a imagem (opcional)
-                const imgX = (pdfWidth - imgWidth) / 2;
-                const imgY = 0; // Iniciar no topo
-
-                doc.addImage(imgData, 'PNG', imgX, imgY, imgWidth, imgHeight);
-                
-                // 6. Salvar o PDF
-                const nomeArquivo = `Relatorio_${data.fatura_detalhes.cliente_nome.replace(' ', '_')}_${data.fatura_detalhes.mes_referencia}.pdf`;
-                doc.save(nomeArquivo);
-
-                // 7. Limpar os estados
-                setIsGeneratingPdf(false);
-                setPdfData(null);
-
-            }, 100); // 100ms de espera para garantir a renderização
-
-        } catch (error) {
-            alert(`Erro ao gerar PDF: ${error.message}`);
-            setIsGeneratingPdf(false);
-            setPdfData(null);
+                return sortConfig.direction === 'ascending' ? comparison : -comparison;
+            });
         }
+        return sortableItems;
+    }, [faturas, sortConfig]); // Recalcula quando as faturas ou a config de sort mudam
+
+    // --- 4. NOVAS FUNÇÕES PARA PEDIR ORDENAÇÃO E INDICADOR ---
+    const requestSort = (key) => {
+        let direction = 'ascending';
+        if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
     };
 
-    if (loading) return <Container><p>Carregando faturas...</p></Container>;
-    if (error) return <Container><p className="error-message">{error}</p></Container>;
+    const getSortIndicator = (key) => {
+        if (sortConfig.key !== key) {
+            return null; 
+        }
+        return sortConfig.direction === 'ascending' ? ' \u2191' : ' \u2193'; // ↑ ou ↓
+    };
+
+
+    // ... (suas funções handleNovaInstalacao, handleNovaFatura, handleExportPDF permanecem as mesmas) ...
+    const handleNovaInstalacao = () => {
+        openInstalacaoModal({
+            clienteId: clienteId,
+            integradorId: integradorId,
+            onSave: fetchData 
+        });
+    };
+
+    const handleNovaFatura = () => {
+        openFaturaModal({ 
+            clienteId: clienteId, 
+            integradorId: integradorId,
+            instalacoes: listaInstalacoes, 
+            onSave: fetchData 
+        });
+    };
+
+    const handleExportPDF = async (faturaId) => {
+        setIsGeneratingPdf(faturaId); 
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/get_detalhes_fatura.php?fatura_id=${faturaId}`);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message);
+            
+            setPdfData(data);
+
+            setTimeout(async () => {
+                const templateElement = document.getElementById('pdf-template-wrapper');
+                if (!templateElement) {
+                    console.error("Erro: Não foi possível encontrar o elemento #pdf-template-wrapper.");
+                    alert("Erro ao gerar PDF: template não encontrado.");
+                    setIsGeneratingPdf(false);
+                    setPdfData(null);
+                    return;
+                }
+                
+                const canvas = await html2canvas(templateElement, {
+                    scale: 2, 
+                    useCORS: true 
+                });
+              _
+                const imgData = canvas.toDataURL('image/png');
+
+                const doc = new jsPDF('p', 'pt', 'a4'); 
+                const pdfWidth = doc.internal.pageSize.getWidth();
+                const pdfHeight = doc.internal.pageSize.getHeight();
+
+                const canvasWidth = canvas.width;
+                const canvasHeight = canvas.height;
+                
+                const ratio = Math.min(pdfWidth / canvasWidth, pdfHeight / canvasHeight);
+                
+                const imgWidth = canvasWidth * ratio;
+                const imgHeight = canvasHeight * ratio;
+                
+                const imgX = (pdfWidth - imgWidth) / 2;
+                const imgY = 0; 
+
+                doc.addImage(imgData, 'PNG', imgX, imgY, imgWidth, imgHeight);
+                
+                const nomeArquivo = `Relatorio_${data.fatura_detalhes.cliente_nome.replace(' ', '_')}_${data.fatura_detalhes.mes_referencia}.pdf`;
+                doc.save(nomeArquivo);
+
+                setIsGeneratingPdf(false);
+                setPdfData(null);
+
+            }, 100); 
+
+        } catch (error) {
+            alert(`Erro ao gerar PDF: ${error.message}`);
+            setIsGeneratingPdf(false);
+            setPdfData(null);
+        }
+    };
+
+    // ... (seu retorno 'if (loading)' e 'if (error)' permanecem os mesmos) ...
+    if (loading) return <Container><p>Carregando faturas...</p></Container>;
+    if (error) return <Container><p className="error-message">{error}</p></Container>;
     
     return (
         <Container>
-            {/* --- INÍCIO DO TEMPLATE INVISÍVEL --- */}
+            {/* --- Template invisível (sem alterações) --- */}
             {isGeneratingPdf && pdfData && (
                 <div 
                     id="pdf-template-wrapper" 
@@ -185,12 +246,12 @@ const FaturasPage = () => {
                     />
                 </div>
             )}
-            {/* --- FIM DO TEMPLATE INVISÍVEL --- */}
-
+            
             {loading ? (
-                <p>Carregando...</p>
+                <p>Carregando <FaSpinner  stroke="#ffffffff" className="spinner"/></p>
             ) : (
                 <>
+                    {/* --- Cabeçalho da página (sem alterações) --- */}
                     <div className="faturas-header">
                         <h1>Faturas de: {clienteNome}</h1>
                         <div className="faturas-actions">
@@ -213,19 +274,32 @@ const FaturasPage = () => {
                     </div>
 
                     <table className="faturas-tabela">
+                        {/* --- 5. CABEÇALHOS ATUALIZADOS --- */}
                         <thead>
                             <tr>
-                                <th>Instalação (UC)</th>
-                                <th>Referência</th>
-                                <th>Valor</th>
-                                <th>Status</th>
-                                <th>Vencimento</th>
-                                <th>Ações</th>
+                                <th className="sortable-header" onClick={() => requestSort('codigo_uc')}>
+                                    Instalação (UC) {getSortIndicator('codigo_uc')}
+                                </th>
+                                <th className="sortable-header" onClick={() => requestSort('mes_referencia')}>
+                                    Referência {getSortIndicator('mes_referencia')}
+                                </th>
+                                <th className="sortable-header" onClick={() => requestSort('valor_total')}>
+                                    Valor {getSortIndicator('valor_total')}
+                                </th>
+                                <th className="sortable-header" onClick={() => requestSort('status')}>
+                                    Status {getSortIndicator('status')}
+                                </th>
+                                <th className="sortable-header" onClick={() => requestSort('data_vencimento')}>
+                                    Vencimento {getSortIndicator('data_vencimento')}
+                                </th>
+                                <th>Ações</th> {/* Coluna de ações não é ordenável */}
                             </tr>
                         </thead>
+                        
+                        {/* --- 6. BODY ATUALIZADO (usando sortedFaturas) --- */}
                         <tbody>
-                            {faturas.length > 0 ? (
-                                faturas.map(fatura => (
+                            {sortedFaturas.length > 0 ? (
+                                sortedFaturas.map(fatura => ( // USA A LISTA ORDENADA
                                     <tr key={fatura.id}>
                                         <td>{fatura.codigo_uc}</td>
                                         <td>{fatura.mes_referencia}</td>
@@ -233,27 +307,27 @@ const FaturasPage = () => {
                                         <td><span className={`status-badge status-${fatura.status}`}>{fatura.status}</span></td>
                                         <td>{new Date(fatura.data_vencimento).toLocaleDateString()}</td>
                                         <td>
-                                            {/* --- BOTÕES ATUALIZADOS --- */}
-                                            <button 
-                                                onClick={(e) => {
-                                                    e.stopPropagation(); // Previne o clique na linha (tr)
-                                                    navigate(`/fatura/${fatura.id}`)
-                                                }} 
-                                                className="btn-orange"
-                                            >
-                                                Detalhes
-                                            </button>
-                                            
-                                            <button 
-                                                onClick={(e) => {
-                                                    e.stopPropagation(); // Previne o clique na linha (tr)
-                                                    handleExportPDF(fatura.id);
-                                                }} 
-                                                className="btn-orange" // Classe de estilo
-                                                disabled={isGeneratingPdf === fatura.id}
-                                            >
-                                                {isGeneratingPdf === fatura.id ? 'Gerando...' : 'PDF'}
-                                            </button>
+                                            {/* ... (Botões de ação sem alterações) ... */}
+                                            <button 
+                                                onClick={(e) => {
+                                                    e.stopPropagation(); 
+                                                    navigate(`/fatura/${fatura.id}`)
+                                                }} 
+                                                className="btn-blue btn-action"
+                                            >
+                                                <FiEye />
+                                            </button>
+                                            
+                                            <button 
+                                                onClick={(e) => {
+                                                    e.stopPropagation(); 
+                                                    handleExportPDF(fatura.id);
+                                                }} 
+                                                className="btn-red" 
+                                                disabled={isGeneratingPdf === fatura.id}
+                                            >
+                                                {isGeneratingPdf === fatura.id ? <FaSpinner  stroke="#ffffffff" className="spinner"/> : <FaRegFilePdf />}
+                                            </button>
                                         </td>
                                     </tr>
                                 ))

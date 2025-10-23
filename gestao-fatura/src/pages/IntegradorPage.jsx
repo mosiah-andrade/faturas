@@ -17,6 +17,7 @@ const IntegradorPage = () => {
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // A lógica de busca de dados (fetchData) está correta
   useEffect(() => {
@@ -95,15 +96,22 @@ const IntegradorPage = () => {
 
       <div className="clientes-section-header">
         <h2>Clientes Vinculados</h2>
-        <button 
-            className="action-btn" 
-            onClick={() => openClienteModal({ 
-              integradorId: integradorId 
-              // Assumindo que seu Layout.jsx lidará com o 'onSave'
-            })}
-        >
-            + Cadastrar Cliente
-        </button>
+        <div>
+          
+          <button onClick={() => setIsModalOpen(true)} className="btn-novo">
+                                  + Criar Instalação
+                              </button>
+          <button 
+              className="action-btn" 
+              onClick={() => openClienteModal({ 
+                integradorId: integradorId 
+                // Assumindo que seu Layout.jsx lidará com o 'onSave'
+              })}
+          >
+              + Cadastrar Cliente
+          </button>
+        
+        </div>
       </div>
       
       <ul className="clientes-lista-detalhe">
@@ -118,16 +126,16 @@ const IntegradorPage = () => {
                   <small>UC: {cliente.codigo_uc}</small>
                 </div>
                 <div className="cliente-acoes">
-                  <Link to={`/cliente/${cliente.cliente_id}/faturas`} className="action-btn icon-btn ver-faturas-btn" title="Ver Faturas">
+                  <Link to={`/cliente/${cliente.cliente_id}/faturas`} className=" icon-btn ver-faturas-btn" title="Ver Faturas">
                     <FiEye />
                   </Link>
-                  <button className="action-btn icon-btn gerar-fatura-btn" onClick={(e) => handleGerarFaturaClick(cliente.id, e)} title="Gerar Fatura">
+                  <button className=" icon-btn gerar-fatura-btn" onClick={(e) => handleGerarFaturaClick(cliente.id, e)} title="Gerar Fatura">
                     <FiFilePlus />
                   </button>
 
                   {/* 4. Adicionar o novo botão de "Adicionar Instalação" */}
                   <button 
-                    className="action-btn icon-btn add-instalacao-btn" 
+                    className=" icon-btn add-instalacao-btn" 
                     onClick={(e) => handleAddInstalacaoClick(cliente.cliente_id, e)} 
                     title="Adicionar Nova Instalação">
                     <FiPlusSquare />
@@ -138,6 +146,7 @@ const IntegradorPage = () => {
             ))
           )}
       </ul>
+      
       <Link to="/" className="back-link">&larr; Voltar ao Painel Principal</Link>
     </Container>
   );

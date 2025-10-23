@@ -106,3 +106,6 @@
 .password-toggle-btn:hover {
     color: #343a40; /* Cor ao passar o mouse */
 }
+table{
+    text-align: center;
+}

@@ -25,7 +25,7 @@
     justify-content: right;
 } 
 .btn-novo {
-    background-color: #28a745;
+    background-color: #031f7e;
     color: white;
     padding: 10px 16px;
     border: none;
@@ -34,8 +34,15 @@
     font-size: 14px; 
     margin-right: 20px;
 }
+.btn-action{
+    padding: 10px 20px;
+    margin: 20px;
+}
+.spinner{
+    width: 20px;
+}
 .btn-gerar{
-    background-color: #007bff;
+    background-color: #ff9900;
     color: white;
     padding: 10px 16px;
     border: none;
@@ -55,9 +62,23 @@
 .back-link:hover{
     cursor: pointer;
 }
-tr{
-    text-align: center;
+table{
+    width: 100%;
+    border-collapse: collapse;
+    
+    tr{
+        height: 40px;
+    }
 }
+.linha{
+    text-align: center;
+
+}
+table tr:nth-child(2n) {
+  background-color: #f2f2f2; 
+  border-radius: 8px;
+}
+
 .btn-orange{
     color: white;
     padding: 8px 12px;
@@ -197,4 +218,13 @@ tr{
     font-size: 1.1em;
     color: #212529;
     font-weight: 500;
+}
+.faturas-tabela th.sortable-header {
+  cursor: pointer;
+  user-select: none; /* Impede a seleção de texto ao clicar rápido */
+  position: relative; /* Ajuda no alinhamento da seta se precisar */
+}
+
+.faturas-tabela th.sortable-header:hover {
+  background-color: #f0f0f0; /* Um leve destaque no hover */
 }

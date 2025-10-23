@@ -244,3 +244,29 @@ button:disabled {
   color: white;
   font-weight: bold;
 }
+.btn-cancel {
+    background-color: #6c757d;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px; 
+    margin-right: 20px;
+    scale: .85;
+}
+.btn-save{
+    background-color: #28a745;
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px; 
+}
+.btn-save:hover, .btn-cancel:hover{
+    opacity: 80%;
+    color: rgba(240, 255, 255, 0.815);
+    transform: scale(1.01);
+    transition: all 1s;
+}

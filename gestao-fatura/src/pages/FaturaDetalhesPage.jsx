@@ -5,6 +5,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Container from '../components/Container';
 import './FaturaDetalhesPage.css'; 
 import GerarFaturaPdf from '../utils/pdfGenerator';
+import { FiEye } from 'react-icons/fi';
+import { FaRegFilePdf, FaSpinner } from "react-icons/fa";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -103,10 +105,10 @@ const FaturaDetalhesPage = () => {
                 <div className="header-actions">
                     <button 
                         onClick={handleExportPDF} 
-                        className="btn-pdf"
+                        className="btn-pdf btn-red"
                         disabled={isGeneratingPDF}
                     >
-                        {isGeneratingPDF ? 'Gerando...' : 'Exportar PDF'}
+                        {isGeneratingPDF ? <FaSpinner  stroke="#ffffffff" className="spinner"/> : <FaRegFilePdf />}
                     </button>
                     
                 </div>
