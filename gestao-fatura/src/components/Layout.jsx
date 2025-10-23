@@ -5,6 +5,7 @@ import FaturaModal from './FaturaModal';
 import ClienteModal from './ClienteModal';
 import IntegradorModal from './IntegradorModal';
 import InstalacaoModal from './InstalacaoModal';
+import SelectionModal from './SelectionModal'; // <<< NOVO: Importar o novo modal
 import './Layout.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -15,6 +16,10 @@ const Layout = () => {
   const [isFaturaModalOpen, setFaturaModalOpen] = useState(false);
   const [isClienteModalOpen, setClienteModalOpen] = useState(false);
   const [isIntegradorModalOpen, setIntegradorModalOpen] = useState(false);
+  
+  // <<< NOVO: Estado para o modal de seleção
+  const [isSelectionModalOpen, setSelectionModalOpen] = useState(false); 
+  
   const [preSelectedIds, setPreSelectedIds] = useState({});
   const [instalacaoModalProps, setInstalacaoModalProps] = useState(null); 
 
@@ -68,12 +73,26 @@ const Layout = () => {
     setPreSelectedIds({});
   }, []);
 
+  // <<< NOVO: Função chamada ao completar a seleção
+  const handleSelectionComplete = (selection) => {
+    // selection = { integradorId, clienteId, instalacaoId }
+    setSelectionModalOpen(false); // Fecha o modal de seleção
+    openFaturaModal(selection); // Abre o modal de fatura com os dados
+  };
+
   const contextValue = useMemo(() => (
     { openFaturaModal, openClienteModal }
   ), [openFaturaModal, openClienteModal]);
 
   return (
     <>
+      {/* <<< NOVO: Renderiza o modal de seleção >>> */}
+      <SelectionModal
+        isOpen={isSelectionModalOpen}
+        onClose={() => setSelectionModalOpen(false)}
+        onComplete={handleSelectionComplete}
+      />
+
       <FaturaModal 
         isOpen={isFaturaModalOpen} 
         onClose={closeFaturaModal} 
@@ -97,7 +116,8 @@ const Layout = () => {
         <Sidebar 
           isCollapsed={isCollapsed}
           toggleSidebar={() => setIsCollapsed(!isCollapsed)}
-          onGerarFatura={openFaturaModal}
+          // <<< MUDANÇA: Altera a função chamada pelo botão
+          onGerarFatura={() => setSelectionModalOpen(true)}
           onCadastrarCliente={openClienteModal}
           onCadastrarIntegrador={() => setIntegradorModalOpen(true)}
         />

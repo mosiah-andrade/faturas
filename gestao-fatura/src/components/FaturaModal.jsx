@@ -13,6 +13,7 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
     const [mensagem, setMensagem] = useState({ texto: '', tipo: '' });
     const [enviando, setEnviando] = useState(false);
 
+    // Efeito para buscar instalações
     useEffect(() => {
         const fetchInstalacoes = async (url) => {
             setLoadingInstalacoes(true);
@@ -28,6 +29,8 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
             }
         };
         const targetIntegrador = preSelectedIds.integradorId || selectedIntegrador;
+        
+        // <<< MUDANÇA: Prioriza o ID do cliente vindo do Wizard
         if (isOpen && preSelectedIds.clienteId) {
             fetchInstalacoes(`${API_BASE_URL}/get_instalacoes_por_cliente.php?cliente_id=${preSelectedIds.clienteId}`);
         } else if (isOpen && targetIntegrador) {
@@ -37,15 +40,27 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
         }
     }, [isOpen, preSelectedIds.clienteId, preSelectedIds.integradorId, selectedIntegrador]);
 
+    // Efeito para resetar o formulário
     useEffect(() => {
         if (isOpen) {
             setMensagem({ texto: '', tipo: '' });
             setSelectedIntegrador(preSelectedIds.integradorId || '');
             setSelectedInstalacaoInfo(null);
-            setInstalacoes([]);
+            setInstalacoes([]); // Limpa instalações ao abrir
             resetForm(preSelectedIds);
         }
     }, [isOpen, preSelectedIds]);
+
+    // <<< NOVO: Efeito para auto-selecionar a instalação se vier do Wizard
+    useEffect(() => {
+        if (preSelectedIds.instalacaoId && instalacoes.length > 0) {
+            const info = instalacoes.find(inst => String(inst.id) === String(preSelectedIds.instalacaoId));
+            setSelectedInstalacaoInfo(info);
+            // Garante que o ID da instalação está no form
+            setFormData(prev => ({ ...prev, instalacao_id: preSelectedIds.instalacaoId }));
+        }
+    }, [preSelectedIds.instalacaoId, instalacoes]);
+
 
     const resetForm = (ids = {}) => {
         setFormData({
@@ -63,6 +78,7 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
         });
     };
 
+    // Esta função ainda é útil caso o usuário venha de outro fluxo
     const handleInstalacaoChange = (e) => {
         const instalacaoId = e.target.value;
         resetForm({ ...preSelectedIds, instalacaoId });
@@ -127,6 +143,7 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
             console.log(`VALOR FINAL (Informado Manualmente): R$ ${valorFinal.toFixed(2)}`);
         }
         console.log("%c--- FIM DO CÁLCULO (FRONTEND) ---", "color: blue; font-weight: bold;");
+        // --- FIM DA LÓGICA DE LOG ---
 
         try {
             const response = await fetch(`${API_BASE_URL}/gerar_fatura.php`, {
@@ -156,6 +173,7 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
                 <h2>Lançar Nova Fatura</h2>
                 <form onSubmit={handleSubmit}>
                     
+                    {/* <<< MUDANÇA: Oculta se já veio do wizard >>> */}
                     {!preSelectedIds.clienteId && !preSelectedIds.integradorId && (
                         <div className="form-group">
                             <label htmlFor="integrador-select">1. Selecione o Integrador:</label>
@@ -168,7 +186,8 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
                         </div>
                     )}
 
-                    {(selectedIntegrador || preSelectedIds.integradorId || preSelectedIds.clienteId) && (
+                    {/* <<< MUDANÇA: Oculta se já veio do wizard (instalacaoId está presente) >>> */}
+                    {(!preSelectedIds.instalacaoId && (selectedIntegrador || preSelectedIds.integradorId || preSelectedIds.clienteId)) && (
                         <div className="form-group">
                             <label htmlFor="instalacao_id_select">2. Selecione a Instalação:</label>
                             <select id="instalacao_id_select" value={formData.instalacao_id} onChange={handleInstalacaoChange} required disabled={loadingInstalacoes}>
@@ -182,6 +201,7 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
                         </div>
                     )}
 
+                    {/* Se a instalação foi selecionada (pelo wizard ou manualmente), mostra o formulário */}
                     {selectedInstalacaoInfo && (
                         <>
                             <div className="form-group">
