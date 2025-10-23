@@ -39,7 +39,7 @@ const SelectionModal = ({ isOpen, onClose, onComplete }) => {
             const fetchIntegradores = async () => {
                 setLoading(true);
                 try {
-                    const response = await fetch(`${API_BASE_URL}/listar_integradores.php`);
+                    const response = await fetch(`${API_BASE_URL}listar_integradores.php`);
                     const data = await response.json();
                     setIntegradores(Array.isArray(data) ? data : []);
                 } catch (error) {
@@ -65,7 +65,7 @@ const SelectionModal = ({ isOpen, onClose, onComplete }) => {
         setSelectedIntegrador(integradorId);
         setLoading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/get_clientes_por_integrador.php?integrador_id=${integradorId}`);
+            const response = await fetch(`${API_BASE_URL}get_clientes_por_integrador.php?integrador_id=${integradorId}`);
             const data = await response.json();
             
             // <<< CORREÇÃO AQUI >>>
@@ -88,7 +88,7 @@ const SelectionModal = ({ isOpen, onClose, onComplete }) => {
         setSelectedCliente(clienteId);
         setLoading(true);
         try {
-            const response = await fetch(`${API_BASE_URL}/get_instalacoes_por_cliente.php?cliente_id=${clienteId}`);
+            const response = await fetch(`${API_BASE_URL}get_instalacoes_por_cliente.php?cliente_id=${clienteId}`);
             const data = await response.json();
             setInstalacoes(Array.isArray(data.instalacoes) ? data.instalacoes : []);
             setStep(3);

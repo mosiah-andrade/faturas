@@ -35,8 +35,8 @@ const InstalacaoForm = ({ onSave, onCancel, initialData }) => {
                 // Se vIntegradorId existir, busca só ele (para preencher o estado)
                 // Se não, busca todos (para o select)
                 const url = vIntegradorId 
-                    ? `${API_BASE_URL}/get_integrador.php?id=${vIntegradorId}` // Busca 1
-                    : `${API_BASE_URL}/listar_integradores.php`; // Busca todos
+                    ? `${API_BASE_URL}get_integrador.php?id=${vIntegradorId}` // Busca 1
+                    : `${API_BASE_URL}listar_integradores.php`; // Busca todos
                     
                 const res = await fetch(url);
                 const data = await res.json();
@@ -61,7 +61,7 @@ const InstalacaoForm = ({ onSave, onCancel, initialData }) => {
             setLoadingClientes(true);
             const fetchClientes = async () => {
                 try {
-                    const res = await fetch(`${API_BASE_URL}/get_clientes_por_integrador.php?integrador_id=${formData.integrador_id}`);
+                    const res = await fetch(`${API_BASE_URL}get_clientes_por_integrador.php?integrador_id=${formData.integrador_id}`);
                     const data = await res.json();
                     if (res.ok) {
                         // Lógica para remover duplicados

@@ -35,7 +35,7 @@ const InstalacaoModal = ({
     // 2. Cria a função de "salvar" (Restante do arquivo está OK)
     const handleSave = async (formData) => {
         try {
-            const res = await fetch(`${API_BASE_URL}/cadastrar_instalacao.php`, {
+            const res = await fetch(`${API_BASE_URL}cadastrar_instalacao.php`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)

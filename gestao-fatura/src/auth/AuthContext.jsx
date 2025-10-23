@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
         // Verifica a sessão quando o app carrega
         const verifySession = async () => {
             try {
-                const response = await fetch(`${API_BASE_URL}/check_session.php`, { credentials: 'include' });
+                const response = await fetch(`${API_BASE_URL}check_session.php`, { credentials: 'include' });
                 const data = await response.json();
                 if (data.loggedIn) {
                     setUser({ name: data.usuario });
@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
     }, []);
 
     const login = async (usuario, senha) => {
-        const response = await fetch(`${API_BASE_URL}/login.php`, {
+        const response = await fetch(`${API_BASE_URL}login.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ usuario, senha }),
@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = async () => {
-        await fetch(`${API_BASE_URL}/logout.php`, { credentials: 'include' });
+        await fetch(`${API_BASE_URL}logout.php`, { credentials: 'include' });
         setUser(null);
     };
 

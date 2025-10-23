@@ -25,7 +25,7 @@ const ClienteInstalacoesPage = () => {
         // ... (seu código fetchData permanece o mesmo)
         setLoading(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/get_instalacoes_por_cliente.php?cliente_id=${clienteId}`);
+            const res = await fetch(`${API_BASE_URL}get_instalacoes_por_cliente.php?cliente_id=${clienteId}`);
             const data = await res.json();
             
             if (!res.ok) {

@@ -26,7 +26,7 @@ const FaturaDetalhesPage = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`${API_BASE_URL}/get_detalhes_fatura.php?fatura_id=${faturaId}`);
+            const res = await fetch(`${API_BASE_URL}get_detalhes_fatura.php?fatura_id=${faturaId}`);
             const data = await res.json();
             
             if (!res.ok) {
@@ -60,7 +60,7 @@ const FaturaDetalhesPage = () => {
         setIsUpdating(true);
         setStatusAtual(novoStatus); 
         try {
-            const res = await fetch(`${API_BASE_URL}/atualizar_status_fatura.php`, { //
+            const res = await fetch(`${API_BASE_URL}atualizar_status_fatura.php`, { //
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ fatura_id: faturaId, novo_status: novoStatus })

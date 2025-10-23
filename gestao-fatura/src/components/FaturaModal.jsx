@@ -32,9 +32,9 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
         
         // <<< MUDANÇA: Prioriza o ID do cliente vindo do Wizard
         if (isOpen && preSelectedIds.clienteId) {
-            fetchInstalacoes(`${API_BASE_URL}/get_instalacoes_por_cliente.php?cliente_id=${preSelectedIds.clienteId}`);
+            fetchInstalacoes(`${API_BASE_URL}get_instalacoes_por_cliente.php?cliente_id=${preSelectedIds.clienteId}`);
         } else if (isOpen && targetIntegrador) {
-            fetchInstalacoes(`${API_BASE_URL}/get_clientes_por_integrador.php?integrador_id=${targetIntegrador}`);
+            fetchInstalacoes(`${API_BASE_URL}get_clientes_por_integrador.php?integrador_id=${targetIntegrador}`);
         } else {
             setInstalacoes([]);
         }
@@ -146,7 +146,7 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
         // --- FIM DA LÓGICA DE LOG ---
 
         try {
-            const response = await fetch(`${API_BASE_URL}/gerar_fatura.php`, {
+            const response = await fetch(`${API_BASE_URL}gerar_fatura.php`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData),
             });

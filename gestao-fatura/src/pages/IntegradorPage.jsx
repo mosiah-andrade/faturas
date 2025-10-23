@@ -25,9 +25,9 @@ const IntegradorPage = () => {
       setError('');
       try {
         const [integradorRes, clientesRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/get_integrador.php?id=${integradorId}`),
+          fetch(`${API_BASE_URL}get_integrador.php?id=${integradorId}`),
           // Este endpoint agora retorna a lista de clientes ÚNICA
-          fetch(`${API_BASE_URL}/get_clientes_por_integrador.php?integrador_id=${integradorId}`)
+          fetch(`${API_BASE_URL}get_clientes_por_integrador.php?integrador_id=${integradorId}`)
         ]);
 
         if (!integradorRes.ok) throw new Error('Falha ao buscar dados do integrador.');

@@ -53,7 +53,7 @@ const FaturasPage = () => {
         if (!clienteId) return;
         setLoading(true);
         try {
-            const resFaturas = await fetch(`${API_BASE_URL}/get_faturas.php?cliente_id=${clienteId}`);
+            const resFaturas = await fetch(`${API_BASE_URL}get_faturas.php?cliente_id=${clienteId}`);
             const dataFaturas = await resFaturas.json();
             
             if (!resFaturas.ok) {
@@ -64,7 +64,7 @@ const FaturasPage = () => {
             setClienteNome(dataFaturas.cliente_nome);
             setIntegradorId(dataFaturas.integrador_id); 
 
-            const resInstalacoes = await fetch(`${API_BASE_URL}/get_instalacoes_por_cliente.php?cliente_id=${clienteId}`);
+            const resInstalacoes = await fetch(`${API_BASE_URL}get_instalacoes_por_cliente.php?cliente_id=${clienteId}`);
             const dataInstalacoes = await resInstalacoes.json();
             
             if (resInstalacoes.ok) {
@@ -169,7 +169,7 @@ const FaturasPage = () => {
         setPdfData(null); // Limpa dados anteriores para garantir a re-execução do useEffect
 
         try {
-            const response = await fetch(`${API_BASE_URL}/get_detalhes_fatura.php?fatura_id=${faturaId}`);
+            const response = await fetch(`${API_BASE_URL}get_detalhes_fatura.php?fatura_id=${faturaId}`);
             const data = await response.json();
             if (!response.ok) throw new Error(data.message);
             

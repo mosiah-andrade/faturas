@@ -104,7 +104,7 @@ const ClienteForm = ({ integradores, preSelectedIds = {} }) => {
         };
 
         try {
-            const response = await fetch(`${API_BASE_URL}/cadastrar_cliente.php`, {
+            const response = await fetch(`${API_BASE_URL}cadastrar_cliente.php`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 // 6. Enviar os dados combinados
