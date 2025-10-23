@@ -163,65 +163,90 @@ const FaturasPage = () => {
         });
     };
 
-    const handleExportPDF = async (faturaId) => {
-        setIsGeneratingPdf(faturaId); 
-        
-        try {
-            const response = await fetch(`${API_BASE_URL}/get_detalhes_fatura.php?fatura_id=${faturaId}`);
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.message);
-            
-            setPdfData(data);
 
-            setTimeout(async () => {
-                const templateElement = document.getElementById('pdf-template-wrapper');
-                if (!templateElement) {
-                    console.error("Erro: Não foi possível encontrar o elemento #pdf-template-wrapper.");
-                    alert("Erro ao gerar PDF: template não encontrado.");
-                    setIsGeneratingPdf(false);
-                    setPdfData(null);
-                    return;
-                }
-                
-                const canvas = await html2canvas(templateElement, {
-                    scale: 2, 
-                    useCORS: true 
-                });
-              _
-                const imgData = canvas.toDataURL('image/png');
+    const handleExportPDF = async (faturaId) => {
+        setIsGeneratingPdf(faturaId); 
+        setPdfData(null); // Limpa dados anteriores para garantir a re-execução do useEffect
 
-                const doc = new jsPDF('p', 'pt', 'a4'); 
-                const pdfWidth = doc.internal.pageSize.getWidth();
-                const pdfHeight = doc.internal.pageSize.getHeight();
+        try {
+            const response = await fetch(`${API_BASE_URL}/get_detalhes_fatura.php?fatura_id=${faturaId}`);
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.message);
+            
+            // Apenas define os dados. O useEffect cuidará da geração.
+            setPdfData(data);
 
-                const canvasWidth = canvas.width;
-                const canvasHeight = canvas.height;
-                
-                const ratio = Math.min(pdfWidth / canvasWidth, pdfHeight / canvasHeight);
-                
-                const imgWidth = canvasWidth * ratio;
-                const imgHeight = canvasHeight * ratio;
-                
-                const imgX = (pdfWidth - imgWidth) / 2;
-                const imgY = 0; 
+        } catch (error) {
+            alert(`Erro ao buscar dados para o PDF: ${error.message}`);
+            setIsGeneratingPdf(false); // Reseta o estado de loading em caso de erro
+        }
+    };
 
-                doc.addImage(imgData, 'PNG', imgX, imgY, imgWidth, imgHeight);
-                
-                const nomeArquivo = `Relatorio_${data.fatura_detalhes.cliente_nome.replace(' ', '_')}_${data.fatura_detalhes.mes_referencia}.pdf`;
-                doc.save(nomeArquivo);
+    // Em faturas/gestao-fatura/src/pages/FaturasPage.jsx
+// ... (depois do seu useEffect existente)
 
-                setIsGeneratingPdf(false);
-                setPdfData(null);
+    // Novo useEffect para lidar com a geração do PDF APÓS a renderização
+    useEffect(() => {
+        // Só executa se tivermos dados E estivermos no modo de geração
+        if (pdfData && isGeneratingPdf) {
+            
+            // Usamos um timer curto (ex: 50ms) para garantir que o navegador 
+            // "pintou" o template invisível no DOM antes do html2canvas tentar lê-lo.
+            const timer = setTimeout(async () => {
+                const templateElement = document.getElementById('pdf-template-wrapper');
+                
+                if (!templateElement) {
+                    console.error("Erro: Não foi possível encontrar o elemento #pdf-template-wrapper.");
+                    alert("Erro ao gerar PDF: template não encontrado.");
+                    setIsGeneratingPdf(false);
+                    setPdfData(null);
+                    return;
+                }
 
-            }, 100); 
+                try {
+                    const canvas = await html2canvas(templateElement, {
+                        scale: 2, 
+                        useCORS: true 
+                    });
+                    
+                    // A linha com o erro de sintaxe "_" foi removida daqui.
+                    
+                    const imgData = canvas.toDataURL('image/png');
+                    const doc = new jsPDF('p', 'pt', 'a4'); 
+                    const pdfWidth = doc.internal.pageSize.getWidth();
+                    const pdfHeight = doc.internal.pageSize.getHeight();
 
-        } catch (error) {
-            alert(`Erro ao gerar PDF: ${error.message}`);
-            setIsGeneratingPdf(false);
-            setPdfData(null);
-        }
-    };
+                    const canvasWidth = canvas.width;
+                    const canvasHeight = canvas.height;
+                    
+                    const ratio = Math.min(pdfWidth / canvasWidth, pdfHeight / canvasHeight);
+                    
+                    const imgWidth = canvasWidth * ratio;
+                    const imgHeight = canvasHeight * ratio;
+                    
+                    const imgX = (pdfWidth - imgWidth) / 2;
+                    const imgY = 0; 
 
+                    doc.addImage(imgData, 'PNG', imgX, imgY, imgWidth, imgHeight);
+                    
+                    const nomeArquivo = `Relatorio_${pdfData.fatura_detalhes.cliente_nome.replace(' ', '_')}_${pdfData.fatura_detalhes.mes_referencia}.pdf`;
+                    doc.save(nomeArquivo);
+
+                } catch (genError) {
+                    alert(`Erro durante a geração do PDF: ${genError.message}`);
+                    console.error("Erro no html2canvas/jsPDF:", genError);
+                } finally {
+                    // Limpa os estados após a tentativa (sucesso ou falha)
+                    setIsGeneratingPdf(false);
+                    setPdfData(null);
+                }
+
+            }, 50); // 50ms é geralmente suficiente para o DOM atualizar.
+
+            // Limpa o timer se o componente for desmontado
+            return () => clearTimeout(timer);
+        }
+    }, [pdfData, isGeneratingPdf]); // Dependências do hook
     // ... (seu retorno 'if (loading)' e 'if (error)' permanecem os mesmos) ...
     if (loading) return <Container><p>Carregando faturas...</p></Container>;
     if (error) return <Container><p className="error-message">{error}</p></Container>;
