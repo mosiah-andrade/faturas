@@ -2,24 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate, useOutletContext } from 'react-router-dom';
 import Container from '../components/Container';
 import './IntegradorPage.css';
-// 1. Importar o novo ícone
-import { FiEye, FiFilePlus, FiPlusSquare } from 'react-icons/fi';
+// 1. Remover FiFilePlus (Gerar Fatura), pois não se aplica mais a esta lista
+import { FiEye, FiPlusSquare } from 'react-icons/fi';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const IntegradorPage = () => {
   const { integradorId } = useParams();
   const navigate = useNavigate();
-  // 2. Obter a nova função do contexto
+  // Manter openClienteModal e openInstalacaoModal
   const { openClienteModal, openFaturaModal, openInstalacaoModal } = useOutletContext();
 
   const [integrador, setIntegrador] = useState(null);
   const [clientes, setClientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // A lógica de busca de dados (fetchData) está correta
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -27,6 +26,7 @@ const IntegradorPage = () => {
       try {
         const [integradorRes, clientesRes] = await Promise.all([
           fetch(`${API_BASE_URL}/get_integrador.php?id=${integradorId}`),
+          // Este endpoint agora retorna a lista de clientes ÚNICA
           fetch(`${API_BASE_URL}/get_clientes_por_integrador.php?integrador_id=${integradorId}`)
         ]);
 
@@ -51,27 +51,20 @@ const IntegradorPage = () => {
     if (event.target.closest('button, a')) {
       return;
     }
+    // Navega para a página de detalhes/instalações do cliente
     navigate(`/cliente/${clienteId}`);
   };
 
-  const handleGerarFaturaClick = (instalacaoId, e) => {
-      e.stopPropagation();
-      openFaturaModal({
-          integradorId: integradorId,
-          instalacaoId: instalacaoId
-          // Assumindo que seu Layout.jsx lidará com o 'onSave'
-          // para recarregar os dados se necessário.
-      });
-  };
+  // 2. REMOVIDO: handleGerarFaturaClick.
+  //    Não faz sentido gerar uma fatura (que é de UMA instalação)
+  //    a partir de uma lista de clientes (que têm MÚLTIPLAS instalações).
+  //    Este botão deve ficar na página de detalhes do cliente.
 
-  // 3. Criar o handler para o novo botão
   const handleAddInstalacaoClick = (clienteId, e) => {
-    e.stopPropagation(); // Impede o clique na linha
+    e.stopPropagation(); 
     openInstalacaoModal({
       clienteId: clienteId,
       integradorId: integradorId
-      // Assumindo que seu Layout.jsx lidará com o 'onSave'
-      // para recarregar os dados se necessário.
     });
   };
 
@@ -97,20 +90,14 @@ const IntegradorPage = () => {
       <div className="clientes-section-header">
         <h2>Clientes Vinculados</h2>
         <div>
-          
-          <button onClick={() => setIsModalOpen(true)} className="btn-novo">
-                                  + Criar Instalação
-                              </button>
           <button 
               className="action-btn" 
               onClick={() => openClienteModal({ 
                 integradorId: integradorId 
-                // Assumindo que seu Layout.jsx lidará com o 'onSave'
               })}
           >
               + Cadastrar Cliente
           </button>
-        
         </div>
       </div>
       
@@ -119,21 +106,25 @@ const IntegradorPage = () => {
             <li className="cliente-lista-vazia">Nenhum cliente cadastrado</li>
           ) : (
             clientes.map(cliente => (
-              // A 'key' é o ID da instalação (cliente.id), o que está correto
-              <li key={cliente.id} onClick={(e) => handleRowClick(cliente.cliente_id, e)}>
+              // 3. A 'key' agora é o 'cliente_id' (que é único)
+              <li key={cliente.cliente_id} onClick={(e) => handleRowClick(cliente.cliente_id, e)}>
                 <div className="cliente-dados">
                   <div className="cliente-nome">{cliente.nome}</div>
-                  <small>UC: {cliente.codigo_uc}</small>
+                  {/* 4. Exibir o total de instalações */}
+                  <small>
+                    {cliente.total_instalacoes} 
+                    {cliente.total_instalacoes === 1 ? ' instalação' : ' instalações'}
+                  </small>
                 </div>
                 <div className="cliente-acoes">
-                  <Link to={`/cliente/${cliente.cliente_id}/faturas`} className=" icon-btn ver-faturas-btn" title="Ver Faturas">
+                  {/* 5. Link para ver detalhes do cliente (faturas, instalações, etc.) */}
+                  <Link to={`/cliente/${cliente.cliente_id}`} className=" icon-btn ver-faturas-btn" title="Ver Detalhes do Cliente">
                     <FiEye />
                   </Link>
-                  <button className=" icon-btn gerar-fatura-btn" onClick={(e) => handleGerarFaturaClick(cliente.id, e)} title="Gerar Fatura">
-                    <FiFilePlus />
-                  </button>
 
-                  {/* 4. Adicionar o novo botão de "Adicionar Instalação" */}
+                  {/* 6. REMOVIDO: Botão Gerar Fatura (FiFilePlus) */}
+
+                  {/* 7. Botão Adicionar Instalação (Correto) */}
                   <button 
                     className=" icon-btn add-instalacao-btn" 
                     onClick={(e) => handleAddInstalacaoClick(cliente.cliente_id, e)} 

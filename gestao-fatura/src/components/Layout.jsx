@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import FaturaModal from './FaturaModal';
 import ClienteModal from './ClienteModal';
 import IntegradorModal from './IntegradorModal';
+import InstalacaoModal from './InstalacaoModal';
 import './Layout.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -15,6 +16,14 @@ const Layout = () => {
   const [isClienteModalOpen, setClienteModalOpen] = useState(false);
   const [isIntegradorModalOpen, setIntegradorModalOpen] = useState(false);
   const [preSelectedIds, setPreSelectedIds] = useState({});
+  const [instalacaoModalProps, setInstalacaoModalProps] = useState(null); 
+
+  const navigate = useNavigate();
+
+  const handleInstalacaoSave = () => {
+    setInstalacaoModalProps(null);
+    navigate(0); 
+  };
 
   const fetchIntegradores = async () => {
     try {
@@ -59,7 +68,9 @@ const Layout = () => {
     setPreSelectedIds({});
   }, []);
 
-  const contextValue = useMemo(() => ({ openFaturaModal, openClienteModal }), [openFaturaModal, openClienteModal]);
+  const contextValue = useMemo(() => (
+    { openFaturaModal, openClienteModal }
+  ), [openFaturaModal, openClienteModal]);
 
   return (
     <>

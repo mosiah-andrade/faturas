@@ -1,21 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Form.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-// --- REMOVIDO: Componente Stepper e RadioButtonGroup (não são mais necessários aqui) ---
-
 const ClienteForm = ({ integradores, preSelectedIds = {} }) => {
-    // --- MUDANÇA: Remoção do 'step' ---
     const [formData, setFormData] = useState({
         nome: '',
         documento: '',
         telefone: '',
-        // --- REMOVIDO: Todos os outros campos (integrador_id, codigo_uc, etc.) ---
     });
 
-    // --- REMOVIDO: useEffect ---
+    // 1. Gerenciar o integradorId separadamente
+    const [integradorId, setIntegradorId] = useState(preSelectedIds.integradorId || '');
     
+    // 2. Atualizar o ID do integrador se a prop mudar
+    useEffect(() => {
+        setIntegradorId(preSelectedIds.integradorId || '');
+    }, [preSelectedIds]);
+
     const [errors, setErrors] = useState({});
     const [mensagem, setMensagem] = useState({ texto: '', tipo: '' });
     const [enviando, setEnviando] = useState(false);
@@ -23,26 +25,43 @@ const ClienteForm = ({ integradores, preSelectedIds = {} }) => {
     const handleChange = (e) => {
         const { id, name, value } = e.target;
         const fieldName = name || id;
-        setFormData(prevState => ({ ...prevState, [fieldName]: value }));
-        if (errors[fieldName]) {
-            setErrors(prevErrors => ({ ...prevErrors, [fieldName]: '' }));
+
+        // 3. Tratar a mudança do integrador ou dos outros campos
+        if (fieldName === 'integrador_id') {
+            setIntegradorId(value);
+            if (errors[fieldName]) {
+                setErrors(prevErrors => ({ ...prevErrors, [fieldName]: '' }));
+            }
+        } else {
+            setFormData(prevState => ({ ...prevState, [fieldName]: value }));
+            if (errors[fieldName]) {
+                setErrors(prevErrors => ({ ...prevErrors, [fieldName]: '' }));
+            }
         }
     };
 
     const validateField = (name, value) => {
         if (!value || String(value).trim() === '') {
+            // Mensagem específica para integrador
+            if (name === 'integrador_id') {
+                return 'É obrigatório selecionar um integrador.';
+            }
             return 'Este campo é obrigatório.';
         }
         return '';
     };
 
     const handleBlur = (e) => {
-        const { id, value } = e.target;
-        const error = validateField(id, value);
-        setErrors(prevErrors => ({ ...prevErrors, [id]: error }));
+        const { id, name, value } = e.target;
+        const fieldName = name || id;
+        
+        // Não valida o select do integrador no blur
+        if (fieldName === 'integrador_id') return;
+
+        const error = validateField(fieldName, value);
+        setErrors(prevErrors => ({ ...prevErrors, [fieldName]: error }));
     };
 
-    // --- MUDANÇA: Validação de 1 passo ---
     const validateForm = () => {
         let newErrors = {};
         let isValid = true;
@@ -55,12 +74,20 @@ const ClienteForm = ({ integradores, preSelectedIds = {} }) => {
                 isValid = false;
             }
         });
+        
+        // 4. Validar o integradorId (que está em state separado)
+        //    Só valida se NÃO estiver pré-selecionado
+        if (!preSelectedIds.integradorId) {
+            const integradorError = validateField('integrador_id', integradorId);
+            if (integradorError) {
+                newErrors['integrador_id'] = integradorError;
+                isValid = false;
+            }
+        }
 
         setErrors(newErrors);
         return isValid;
     };
-
-    // --- REMOVIDO: nextStep, prevStep, handleEnderecoChange ---
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -70,12 +97,18 @@ const ClienteForm = ({ integradores, preSelectedIds = {} }) => {
         setEnviando(true);
         setMensagem({ texto: '', tipo: '' });
 
+        // 5. Combinar formData e integradorId para o envio
+        const dataToSend = {
+            ...formData,
+            integrador_id: integradorId 
+        };
+
         try {
-            // --- MUDANÇA: Chama o 'cadastrar_cliente.php' simplificado ---
             const response = await fetch(`${API_BASE_URL}/cadastrar_cliente.php`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
+                // 6. Enviar os dados combinados
+                body: JSON.stringify(dataToSend) 
             });
 
             const result = await response.json();
@@ -86,9 +119,10 @@ const ClienteForm = ({ integradores, preSelectedIds = {} }) => {
             setMensagem({ texto: result.message, tipo: 'success' });
             // Limpa o formulário
             setFormData({ nome: '', documento: '', telefone: '' });
-            
-            // Você pode adicionar uma lógica para fechar o modal
-            // ou redirecionar o usuário aqui.
+            // Limpa o integrador SOMENTE SE não estiver pré-selecionado
+            if (!preSelectedIds.integradorId) {
+                setIntegradorId('');
+            }
 
         } catch (error) {
             setMensagem({ texto: error.message, tipo: 'error' });
@@ -96,17 +130,37 @@ const ClienteForm = ({ integradores, preSelectedIds = {} }) => {
             setEnviando(false);
         }
     };
-
-    // --- MUDANÇA: renderStep() removido, formulário direto ---
+    
     return (
         <form onSubmit={handleSubmit} noValidate>
-            {/* --- REMOVIDO: Stepper --- */}
             {mensagem.texto && !enviando && <div className={`message ${mensagem.tipo}`}>{mensagem.texto}</div>}
             
             <fieldset className="form-section">
                 <legend>Dados do Cliente</legend>
                 
-                {/* --- REMOVIDO: Campo Integrador --- */}
+                <div className="form-group">
+                    <label htmlFor="integrador_id">Integrador:</label>
+                    <select
+                        id="integrador_id"
+                        name="integrador_id"
+                        value={integradorId}
+                        // 7. Usar o handleChange universal
+                        onChange={handleChange} 
+                        // 8. Aplicar classe de erro
+                        className={errors.integrador_id ? 'error-input' : ''} 
+                        required
+                        disabled={!!preSelectedIds.integradorId} 
+                    >
+                        <option value="">Selecione o integrador...</option>
+                        {integradores.map(int => (
+                            <option key={int.id} value={int.id}>
+                                {int.nome_do_integrador || int.nome}
+                            </option>
+                        ))}
+                    </select>
+                    {/* 9. Exibir erro do integrador */}
+                    <div className="error-text">{errors.integrador_id}</div>
+                </div>
 
                 <div className="form-row">
                     <div className="form-group">
@@ -127,7 +181,6 @@ const ClienteForm = ({ integradores, preSelectedIds = {} }) => {
                 </div>
             </fieldset>
 
-            {/* --- MUDANÇA: Botões de navegação simplificados --- */}
             <div className="form-navigation">
                 <button type="submit" className="btn-orange" disabled={enviando} style={{ marginLeft: 'auto' }}>
                     {enviando ? 'Enviando...' : 'Cadastrar Cliente'}

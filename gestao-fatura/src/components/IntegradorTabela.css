@@ -71,7 +71,6 @@
 .integradores-table tbody tr {
     cursor: pointer; /* Adicione esta linha */
 }
-
 .integradores-table tbody tr:hover {
     background-color: #f1f3f5;
 }
