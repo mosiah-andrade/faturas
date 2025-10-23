@@ -1,31 +1,40 @@
 // faturas/gestao-fatura/src/components/InstalacaoModal.jsx
 
 import React from 'react';
-import InstalacaoForm from './InstalacaoForm'; // O formulário que você enviou
-import './Modal.css'; // (Ou o CSS que você usa para modais)
+import InstalacaoForm from './InstalacaoForm'; 
+import './Modal.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 /**
- * Este modal recebe as props da PÁGINA (ClienteInstalacoesPage)
- * e as formata para o FORMULÁRIO (InstalacaoForm).
+ * --- CORREÇÃO AQUI ---
+ * Agora o modal lê AMBOS os IDs de dentro do objeto `preSelectedIds`.
+ * A prop `clienteId` separada ainda é mantida para compatibilidade
+ * com outras páginas (como a ClienteInstalacoesPage).
  */
-const InstalacaoModal = ({ isOpen, onClose, onSave, clienteId, integradorId }) => {
+const InstalacaoModal = ({ 
+    isOpen, 
+    onClose, 
+    onSave, 
+    preSelectedIds = {}, // Objeto vindo do Layout
+    clienteId = null      // ID avulso (para outras páginas)
+}) => {
     if (!isOpen) return null;
 
-    // 1. Prepara o objeto initialData que o seu formulário espera
+    // 1. Prepara o objeto initialData
+    // O InstalacaoForm já sabe lidar com 'clienteId' ou 'cliente_id'
     const initialData = {
-        cliente_id: clienteId,     // ID vindo da página
-        integrador_id: integradorId  // ID vindo da página
+        // Prioriza o ID vindo da página do Cliente,
+        // senão, busca de dentro do preSelectedIds
+        cliente_id: clienteId || preSelectedIds.clienteId, 
+        
+        // Busca o ID do integrador de dentro do preSelectedIds
+        integrador_id: preSelectedIds.integradorId 
     };
 
-    // 2. Cria a função de "salvar" que o formulário vai chamar
-    // O formulário passa o (formData) e este modal faz a chamada API.
+    // 2. Cria a função de "salvar" (Restante do arquivo está OK)
     const handleSave = async (formData) => {
         try {
-            // (Você pode querer mover essa lógica de API para um arquivo 'apiService.js',
-            // mas por enquanto, podemos deixar aqui)
-            
             const res = await fetch(`${API_BASE_URL}/cadastrar_instalacao.php`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -38,11 +47,9 @@ const InstalacaoModal = ({ isOpen, onClose, onSave, clienteId, integradorId }) =
                 throw new Error(data.message || 'Erro ao salvar instalação');
             }
             
-            // Se chegou aqui, foi sucesso!
             alert('Instalação cadastrada com sucesso!');
-            onSave();  // Chama o `fetchData` da página para atualizar a lista
-            onClose(); // Fecha o modal
-
+            onSave();  
+            onClose(); 
 
         } catch (error) {
             console.error('Erro no handleSave do modal:', error);
@@ -57,9 +64,9 @@ const InstalacaoModal = ({ isOpen, onClose, onSave, clienteId, integradorId }) =
                 <h2>Cadastrar Nova Instalação</h2>
                 
                 <InstalacaoForm
-                    initialData={initialData} // <--- Passa os IDs pré-definidos
-                    onSave={handleSave}       // <--- Passa a função de API
-                    onCancel={onClose}        // <--- Passa a função de fechar
+                    initialData={initialData} // <--- Passa AMBOS os IDs pré-definidos
+                    onSave={handleSave}       
+                    onCancel={onClose}        
                 />
 
             </div>

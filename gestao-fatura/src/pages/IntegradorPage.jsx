@@ -11,7 +11,7 @@ const IntegradorPage = () => {
   const { integradorId } = useParams();
   const navigate = useNavigate();
   // Manter openClienteModal e openInstalacaoModal
-  const { openClienteModal, openFaturaModal, openInstalacaoModal } = useOutletContext();
+  const { openFaturaModal, openClienteModal, openInstalacaoModal } = useOutletContext();
 
   const [integrador, setIntegrador] = useState(null);
   const [clientes, setClientes] = useState([]);
@@ -127,7 +127,7 @@ const IntegradorPage = () => {
                   {/* 7. Botão Adicionar Instalação (Correto) */}
                   <button 
                     className=" icon-btn add-instalacao-btn" 
-                    onClick={(e) => handleAddInstalacaoClick(cliente.cliente_id, e)} 
+                    onClick={() => openInstalacaoModal({ preSelectedIds: { integradorId: integradorId, clienteId: cliente.cliente_id } })}
                     title="Adicionar Nova Instalação">
                     <FiPlusSquare />
                   </button>
