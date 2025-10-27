@@ -12,6 +12,7 @@ import { FaRegFilePdf, FaSpinner } from "react-icons/fa";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+
 // --- NOVA FUNÇÃO HELPER (FORA DO COMPONENTE) ---
 // Converte "MM/YYYY" para um número comparável (ex: "10/2025" -> 202510)
 const parseMesReferencia = (mesRef) => {
@@ -37,6 +38,8 @@ const FaturasPage = () => {
     const [integradorId, setIntegradorId] = useState(null);
     const [listaInstalacoes, setListaInstalacoes] = useState([]); 
     const [loading, setLoading] = useState(true);
+
+    // ADICIONE ESTA LINHA:
     const [error, setError] = useState('');
     const [isModalOpen, setModalOpen] = useState(false);
 
@@ -281,12 +284,11 @@ const FaturasPage = () => {
                         <h1>Faturas de: {clienteNome}</h1>
                         <div className="faturas-actions">
                             <button 
-                                onClick={handleNovaInstalacao} 
+                                onClick={handleNovaInstalacao} // <-- CORREÇÃO AQUI
                                 className="btn-novo"
-                                disabled={!integradorId}
-                                title={!integradorId ? "Não foi possível identificar o integrador." : "Adicionar nova instalação"}
+                                disabled={loading || !integradorId} 
                             >
-                                + Criar Instalação
+                                {loading ? 'Carregando...' : '+ Criar Instalação'}
                             </button>
                             
                             <button 
@@ -299,7 +301,6 @@ const FaturasPage = () => {
                     </div>
 
                     <table className="faturas-tabela">
-                        {/* --- 5. CABEÇALHOS ATUALIZADOS --- */}
                         <thead>
                             <tr>
                                 <th className="sortable-header" onClick={() => requestSort('codigo_uc')}>
@@ -317,11 +318,10 @@ const FaturasPage = () => {
                                 <th className="sortable-header" onClick={() => requestSort('data_vencimento')}>
                                     Vencimento {getSortIndicator('data_vencimento')}
                                 </th>
-                                <th>Ações</th> {/* Coluna de ações não é ordenável */}
+                                <th>Ações</th> 
                             </tr>
                         </thead>
                         
-                        {/* --- 6. BODY ATUALIZADO (usando sortedFaturas) --- */}
                         <tbody>
                             {sortedFaturas.length > 0 ? (
                                 sortedFaturas.map(fatura => ( // USA A LISTA ORDENADA
@@ -332,7 +332,7 @@ const FaturasPage = () => {
                                         <td><span className={`status-badge status-${fatura.status}`}>{fatura.status}</span></td>
                                         <td>{new Date(fatura.data_vencimento).toLocaleDateString()}</td>
                                         <td>
-                                            {/* ... (Botões de ação sem alterações) ... */}
+                                            
                                             <button 
                                                 onClick={(e) => {
                                                     e.stopPropagation(); 

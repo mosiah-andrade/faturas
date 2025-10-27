@@ -116,9 +116,13 @@ const ClienteInstalacoesPage = () => {
                         {/* ... (cabeçalho da página sem alterações) ... */}
                         <h1>Instalações de: {clienteNome}</h1>
                         <div className="faturas-actions">
-                            <button onClick={() => setIsModalOpen(true)} className="btn-novo">
-                                + Criar Instalação
-                            </button>
+                            <button 
+                                onClick={() => setIsModalOpen(true)} 
+                                className="btn-novo"
+                                disabled={loading || !integradorId} 
+                            >
+                                {loading ? 'Carregando...' : '+ Criar Instalação'}
+                            </button>
                             <button onClick={handleGerarFatura} className="btn-gerar">
                                 Ver Faturas
                             </button>

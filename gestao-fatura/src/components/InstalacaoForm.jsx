@@ -1,15 +1,20 @@
-// faturas/gestao-fatura/src/components/InstalacaoForm.jsx
-
 import React, { useState, useEffect } from 'react';
 import './Form.css'; // Reutilizando o CSS
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-const InstalacaoForm = ({ onSave, onCancel, initialData }) => {
+// ===================================================================
+// CORREÇÃO 1: Aceite 'clienteId' e 'integradorId' como props diretas
+// ===================================================================
+const InstalacaoForm = ({ onSave, onCancel, initialData, clienteId, integradorId }) => {
     
-    // Normaliza os IDs (aceita camelCase OU snake_case)
-    const vIntegradorId = initialData?.integradorId || initialData?.integrador_id;
-    const vClienteId = initialData?.clienteId || initialData?.cliente_id;
+    // ===================================================================
+    // CORREÇÃO 2: Atualize a lógica para usar as props diretas OU o initialData
+    // ===================================================================
+    // Normaliza os IDs (aceita props diretas, OU camelCase/snake_case do initialData)
+    const vIntegradorId = integradorId || initialData?.integradorId || initialData?.integrador_id;
+    const vClienteId = clienteId || initialData?.clienteId || initialData?.cliente_id;
+    // ===================================================================
 
     const [formData, setFormData] = useState({
         integrador_id: vIntegradorId || '',

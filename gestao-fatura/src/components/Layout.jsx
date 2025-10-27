@@ -122,6 +122,8 @@ const Layout = () => {
         // Passa as props dinâmicas para o modal
         preSelectedIds={instalacaoModalProps?.preSelectedIds || {}}
         clienteId={instalacaoModalProps?.clienteId || null}
+        integradorId={instalacaoModalProps?.integradorId || null}
+        
       />
 
       <div className={`app-layout ${isCollapsed ? 'sidebar-collapsed' : ''}`}>
