@@ -28,7 +28,7 @@ const formatarMesAno = (mesAno, estilo = 'long') => {
 
 const FaturaTemplateHtml = ({ fatura, historico }) => {
   const consumoEmReais = parseFloat(fatura.valor_consumo || 0);
-  const injecaoKwh = parseFloat(fatura.consumo_registrado || 0);
+  const consumoKwh = parseFloat(fatura.consumo_kwh_registrado || 0);
   const taxaMinima = parseFloat(fatura.taxa_minima || 0);
   const percentualDesconto = parseInt(fatura.percentual_desconto || 0);
   const valorSemDesconto = parseFloat(fatura.subtotal || 0);
@@ -36,7 +36,7 @@ const FaturaTemplateHtml = ({ fatura, historico }) => {
   const valorFinal = parseFloat(fatura.valor_total || 0);
 
   let valorKwh = 0;
-  if (injecaoKwh > 0) valorKwh = consumoEmReais / injecaoKwh;
+  if (consumoKwh > 0) valorKwh = consumoEmReais / consumoKwh;
 
   const mesVencimento = new Date(fatura.data_vencimento + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'long' }).toUpperCase();
 
@@ -68,24 +68,34 @@ const FaturaTemplateHtml = ({ fatura, historico }) => {
       </header>
 
 
-      <section className="pdf-titulo-secao">
-        <h2>RELATÓRIO DE CONSUMO</h2>
-        <p>Competência: {formatarMesAno(fatura.mes_referencia)}</p>
-        <p>Vencimento em: {mesVencimento}</p>
+          <h2>RELATÓRIO DE CONSUMO</h2>
+      <section className="pdf-titulo-secao ">
+        <div>
+          <p>Competência: {formatarMesAno(fatura.mes_referencia)}</p>
+          <p>Vencimento em: {mesVencimento}</p>
+        </div>
+
+        <div>
+          <p>Data da Leitura {formatarData(fatura.data_leitura)}</p>
+          <p>Numero de Dias: {fatura.numero_dias}</p>
+        </div>
       </section>
 
       <section className="pdf-corpo">
         <div className="coluna-detalhes">
           <table className="pdf-detalhes-tabela">
             <tbody>
-              <tr>
-                <td>Data da Leitura</td>
-                <td>{formatarData(fatura.data_leitura)}</td>
-              </tr>
+              
               <tr>
                 <td>Consumo do mês atual (kWh)</td>
-                <td>{injecaoKwh.toFixed(0)}</td>
+                <td>{consumoKwh.toFixed(0)}</td>
               </tr>
+              {parseFloat(fatura.injecao_kwh || 0) > 0 && (
+                <tr>
+                  <td>Valor injetado:</td>
+                  <td>{parseFloat(fatura.injecao_kwh).toFixed(0)} kWh</td>
+                </tr>
+              )}
               {/* <tr>
                 <td>Valor do kWh (TUSD + TE)</td>
                 <td>R$ {valorKwh.toFixed(2)}</td>
