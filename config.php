@@ -3,7 +3,7 @@
 
 // Defina o ambiente atual aqui: 'development' ou 'production'
 // Mude para 'production' quando for fazer o deploy do site.
-define('APP_ENV', 'development'); 
+define('APP_ENV', 'production'); 
 
 if (APP_ENV === 'production') {
     // Carrega as configurações de produção
