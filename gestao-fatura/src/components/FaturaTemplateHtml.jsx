@@ -86,10 +86,10 @@ const FaturaTemplateHtml = ({ fatura, historico }) => {
                 <td>Consumo do mês atual (kWh)</td>
                 <td>{injecaoKwh.toFixed(0)}</td>
               </tr>
-              <tr>
+              {/* <tr>
                 <td>Valor do kWh (TUSD + TE)</td>
                 <td>R$ {valorKwh.toFixed(2)}</td>
-              </tr>
+              </tr> */}
               <tr>
                 <td>Taxa Mínima</td>
                 <td>{formatarMoeda(taxaMinima)}</td>

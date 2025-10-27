@@ -113,7 +113,7 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
 
             if (selectedInstalacaoInfo.regra_faturamento === 'Antes da Taxação') {
                 console.log("Cálculo ANTES da Taxação:");
-                console.log("1. Subtotal = Consumo (R$) + Taxa Mínima");
+                console.log("1. Subtotal = Consumo (Kwh) + Taxa Mínima");
                 subtotal = consumoEmReais + taxaMinima;
                 console.log(`   ${consumoEmReais.toFixed(2)} + ${taxaMinima.toFixed(2)} = ${subtotal.toFixed(2)}`);
 
@@ -127,11 +127,11 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
             } else { // Depois da Taxação
                 console.log("Cálculo DEPOIS da Taxação:");
                 subtotal = consumoEmReais;
-                console.log("1. Valor do Desconto = Consumo (R$) * (Percentual / 100)");
+                console.log("1. Valor do Desconto = Consumo (Kwh) * (Percentual / 100)");
                 valorDesconto = consumoEmReais * (percentualDesconto / 100);
                 console.log(`   ${consumoEmReais.toFixed(2)} * (${percentualDesconto} / 100) = ${valorDesconto.toFixed(2)}`);
 
-                console.log("2. Valor Final = (Consumo (R$) - Valor do Desconto) + Taxa Mínima");
+                console.log("2. Valor Final = (Consumo (Kwh) - Valor do Desconto) + Taxa Mínima");
                 valorFinal = (consumoEmReais - valorDesconto) + taxaMinima;
                 console.log(`   (${consumoEmReais.toFixed(2)} - ${valorDesconto.toFixed(2)}) + ${taxaMinima.toFixed(2)} = ${valorFinal.toFixed(2)}`);
             }
@@ -213,7 +213,7 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
                                 <fieldset className="form-section">
                                     <legend>Dados de Investimento</legend>
                                     <div className="form-row">
-                                        <div className="form-group"><label htmlFor="consumo_kwh">Consumo (R$):</label><input type="number" step="0.01" id="consumo_kwh" value={formData.consumo_kwh || ''} onChange={handleChange} required /></div>
+                                        <div className="form-group"><label htmlFor="consumo_kwh">Consumo (Kwh):</label><input type="number" step="0.01" id="consumo_kwh" value={formData.consumo_kwh || ''} onChange={handleChange} required /></div>
                                         <div className="form-group"><label htmlFor="taxa_minima">Taxa Mínima (R$):</label><input type="number" step="0.01" id="taxa_minima" value={formData.taxa_minima || ''} onChange={handleChange} placeholder="Ex: 30.00" /></div>
                                     </div>
                                     <div className="form-row">
