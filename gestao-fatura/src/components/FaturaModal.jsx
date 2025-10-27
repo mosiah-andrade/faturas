@@ -101,7 +101,7 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
         console.clear();
         console.log("%c--- INÍCIO DO CÁLCULO DA FATURA (FRONTEND) ---", "color: blue; font-weight: bold;");
 
-        const consumoEmReais = parseFloat(formData.consumo_kwh || 0);
+        const consumo = parseFloat(formData.consumo_kwh || 0);
         const taxaMinima = parseFloat(formData.taxa_minima || 0);
         const percentualDesconto = parseInt(formData.percentual_desconto || 0);
 
@@ -114,8 +114,8 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
             if (selectedInstalacaoInfo.regra_faturamento === 'Antes da Taxação') {
                 console.log("Cálculo ANTES da Taxação:");
                 console.log("1. Subtotal = Consumo (Kwh) + Taxa Mínima");
-                subtotal = consumoEmReais + taxaMinima;
-                console.log(`   ${consumoEmReais.toFixed(2)} + ${taxaMinima.toFixed(2)} = ${subtotal.toFixed(2)}`);
+                subtotal = consumo + taxaMinima;
+                console.log(`   ${consumo.toFixed(2)} + ${taxaMinima.toFixed(2)} = ${subtotal.toFixed(2)}`);
 
                 console.log("2. Valor do Desconto = Subtotal * (Percentual / 100)");
                 valorDesconto = subtotal * (percentualDesconto / 100);
@@ -126,14 +126,14 @@ const FaturaModal = ({ isOpen, onClose, onFaturaGerada, preSelectedIds = {}, int
                 console.log(`   ${subtotal.toFixed(2)} - ${valorDesconto.toFixed(2)} = ${valorFinal.toFixed(2)}`);
             } else { // Depois da Taxação
                 console.log("Cálculo DEPOIS da Taxação:");
-                subtotal = consumoEmReais;
+                subtotal = consumo;
                 console.log("1. Valor do Desconto = Consumo (Kwh) * (Percentual / 100)");
-                valorDesconto = consumoEmReais * (percentualDesconto / 100);
-                console.log(`   ${consumoEmReais.toFixed(2)} * (${percentualDesconto} / 100) = ${valorDesconto.toFixed(2)}`);
+                valorDesconto = consumo * (percentualDesconto / 100);
+                console.log(`   ${consumo.toFixed(2)} * (${percentualDesconto} / 100) = ${valorDesconto.toFixed(2)}`);
 
                 console.log("2. Valor Final = (Consumo (Kwh) - Valor do Desconto) + Taxa Mínima");
-                valorFinal = (consumoEmReais - valorDesconto) + taxaMinima;
-                console.log(`   (${consumoEmReais.toFixed(2)} - ${valorDesconto.toFixed(2)}) + ${taxaMinima.toFixed(2)} = ${valorFinal.toFixed(2)}`);
+                valorFinal = (consumo - valorDesconto) + taxaMinima;
+                console.log(`   (${consumo.toFixed(2)} - ${valorDesconto.toFixed(2)}) + ${taxaMinima.toFixed(2)} = ${valorFinal.toFixed(2)}`);
             }
             console.log(`%cVALOR FINAL CALCULADO: R$ ${valorFinal.toFixed(2)}`, "color: green; font-weight: bold;");
 

@@ -27,7 +27,7 @@ const formatarMesAno = (mesAno, estilo = 'long') => {
 };
 
 const FaturaTemplateHtml = ({ fatura, historico }) => {
-  const consumoEmReais = parseFloat(fatura.valor_consumo || 0);
+  const consumo = (fatura.valor_consumo || 0);
   const consumoKwh = parseFloat(fatura.consumo_kwh_registrado || 0);
   const taxaMinima = parseFloat(fatura.taxa_minima || 0);
   const percentualDesconto = parseInt(fatura.percentual_desconto || 0);
@@ -36,7 +36,7 @@ const FaturaTemplateHtml = ({ fatura, historico }) => {
   const valorFinal = parseFloat(fatura.valor_total || 0);
 
   let valorKwh = 0;
-  if (consumoKwh > 0) valorKwh = consumoEmReais / consumoKwh;
+  if (consumoKwh > 0) valorKwh = consumo / consumoKwh;
 
   const mesVencimento = new Date(fatura.data_vencimento + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'long' }).toUpperCase();
 
