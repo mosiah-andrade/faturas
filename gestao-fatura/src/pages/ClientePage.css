@@ -1,0 +1,205 @@
+/* ClientePage.css */
+
+/* Cabeçalho do Cliente */
+.cliente-header {
+  border-bottom: 2px solid #ff9900;
+  padding-bottom: 20px;
+  margin-bottom: 30px;
+}
+
+.cliente-header-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.cliente-icon-wrapper {
+  background: #FFF3E0;
+  padding: 10px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cliente-info h2 {
+  margin: 0;
+  color: #333;
+  font-size: 1.8rem;
+}
+
+.cliente-meta {
+  color: #666;
+  font-size: 0.95rem;
+  margin-top: 5px;
+}
+
+.cliente-meta span {
+  margin-right: 15px;
+}
+
+/* Seção de Instalações */
+.installations-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.installations-section-header h3 {
+  margin: 0;
+  color: #007bff;
+  font-size: 1.4rem;
+}
+
+/* Estado Vazio */
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  color: #666;
+  border: 1px dashed #ccc;
+}
+
+.empty-state p {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+}
+
+.btn-link-action {
+  color: #007bff;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  font-size: 1rem;
+}
+
+/* Lista de Instalações */
+.installations-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.installation-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.installation-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.installation-info {
+  flex: 1;
+  min-width: 250px;
+}
+
+.uc-header {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.address-row {
+  color: #555;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Badges (Tags Coloridas) */
+.badges-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.badge-ligacao {
+  background: #e3f2fd;
+  color: #0d47a1;
+}
+
+.badge-tipo {
+  background: #e8f5e9;
+  color: #1b5e20;
+}
+
+.badge-regra {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+/* Ações do Card */
+.card-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+/* Botão de Ação Genérico (usado para Nova Instalação e Ações do Card) */
+.action-btn {
+  background-color: #ff9900;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
+  transition: background-color 0.2s;
+}
+
+.action-btn:hover {
+  background-color: #e68a00;
+}
+
+/* Variantes de Botão */
+.btn-secondary {
+  background-color: #6c757d;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+/* Rodapé / Voltar */
+.footer-navigation {
+  margin-top: 30px;
+}
+
+
+/* Loading e Erro */
+.error-text {
+    color: #dc3545;
+    text-align: center;
+    margin-top: 20px;
+}

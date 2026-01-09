@@ -3,7 +3,9 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import PainelPrincipal from './pages/PainelPrincipal';
 import IntegradorPage from './pages/IntegradorPage';
+import ClientePage from './pages/ClientePage';
 import FaturasPage from './pages/FaturasPage';
+import FaturasInstalacaoPage from './pages/FaturasInstalacaoPage';
 import FaturaDetalhesPage from './pages/FaturaDetalhesPage';
 import LoginPage from './pages/LoginPage'; // Importe a página de login
 import ProtectedRoute from './auth/ProtectedRoute'; // Importe a rota protegida
@@ -22,7 +24,9 @@ function App() {
           <Route element={<Layout />}>
             <Route path="/" element={<PainelPrincipal />} />
             <Route path="/integrador/:integradorId" element={<IntegradorPage />} />
+            <Route path="/cliente/:clienteId" element={<ClientePage />} />
             <Route path="/cliente/:clienteId/faturas" element={<FaturasPage />} />
+            <Route path="/cliente/:clienteId/instalacao/:instalacaoId/faturas" element={<FaturasInstalacaoPage />} />
             <Route path="/fatura/:faturaId" element={<FaturaDetalhesPage />} />
           </Route>
         </Route>

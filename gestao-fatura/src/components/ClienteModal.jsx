@@ -2,7 +2,7 @@ import React from 'react';
 import ClienteForm from './ClienteForm';
 import './Modal.css';
 
-const ClienteModal = ({ isOpen, onClose, integradores }) => {
+const ClienteModal = ({ isOpen, onClose, integradores, preSelectedIds = {} }) => {
   if (!isOpen) return null;
 
   return (
@@ -10,7 +10,7 @@ const ClienteModal = ({ isOpen, onClose, integradores }) => {
       <div className="modal-content" onClick={e => e.stopPropagation()}>
         <span className="close-btn" onClick={onClose}>&times;</span>
         <h2>Cadastrar Novo Cliente</h2>
-        <ClienteForm integradores={integradores} />
+        <ClienteForm integradores={integradores} preSelectedIds={preSelectedIds} />
       </div>
     </div>
   );

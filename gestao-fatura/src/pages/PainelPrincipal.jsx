@@ -3,7 +3,7 @@ import IntegradorTabela from '../components/IntegradorTabela';
 import Container from '../components/Container';
 import './PainelPrincipal.css'; // << ADICIONE ESTA LINHA
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost/faturas/api/';
 
 const PainelPrincipal = () => {
     const [integradores, setIntegradores] = useState([]);

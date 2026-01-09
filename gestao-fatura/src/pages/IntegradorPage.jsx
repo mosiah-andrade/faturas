@@ -4,7 +4,7 @@ import Container from '../components/Container';
 import './IntegradorPage.css';
 import { FiEye, FiFilePlus } from 'react-icons/fi';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost/faturas/api/';
 
 const IntegradorPage = () => {
   const { integradorId } = useParams();
@@ -34,7 +34,24 @@ const IntegradorPage = () => {
 
         if (!clientesRes.ok) throw new Error('Falha ao buscar clientes.');
         const clientesData = await clientesRes.json();
-        setClientes(clientesData);
+        
+        // Agrupar clientes e contar instalações
+        const clientesAgrupados = {};
+        clientesData.forEach(item => {
+          if (!clientesAgrupados[item.cliente_id]) {
+            clientesAgrupados[item.cliente_id] = {
+              cliente_id: item.cliente_id,
+              nome: item.nome,
+              quantidade_instalacoes: 0
+            };
+          }
+          // Contar apenas se houver uma instalação (id não é null)
+          if (item.id) {
+            clientesAgrupados[item.cliente_id].quantidade_instalacoes++;
+          }
+        });
+        
+        setClientes(Object.values(clientesAgrupados));
       } catch (err) {
         setError(err.message);
       } finally {
@@ -49,7 +66,7 @@ const IntegradorPage = () => {
     if (event.target.closest('button, a')) {
       return;
     }
-    navigate(`/cliente/${clienteId}/faturas`);
+    navigate(`/cliente/${clienteId}`);
   };
 
   const handleGerarFaturaClick = (instalacaoId, e) => {
@@ -75,6 +92,7 @@ const IntegradorPage = () => {
 
   return (
     <Container>
+      <Link to="/" className="back-link">&larr; Voltar </Link>
       <div className="integrador-header">
         <h1>{integrador.nome_do_integrador}</h1>
         <p className="contato">{integrador.numero_de_contato}</p>
@@ -98,21 +116,21 @@ const IntegradorPage = () => {
               <li key={cliente.id} onClick={(e) => handleRowClick(cliente.cliente_id, e)}>
                 <div className="cliente-dados">
                   <div className="cliente-nome">{cliente.nome}</div>
-                  <small>UC: {cliente.codigo_uc}</small>
+                  <small>{cliente.quantidade_instalacoes} {cliente.quantidade_instalacoes === 1 ? 'Instalação' : 'Instalações'}</small>
                 </div>
                 <div className="cliente-acoes">
-                  <Link to={`/cliente/${cliente.cliente_id}/faturas`} className="action-btn icon-btn ver-faturas-btn" title="Ver Faturas">
-                    <FiEye />
+                  <Link to={`/cliente/${cliente.cliente_id}`} className="second-action icon-btn ver-faturas-btn" title="Ver Instalações">
+                    <FiEye /> Ver Instalações
                   </Link>
-                  <button className="action-btn icon-btn gerar-fatura-btn" onClick={(e) => handleGerarFaturaClick(cliente.id, e)} title="Gerar Fatura">
-                    <FiFilePlus />
+                  <button className="second-action icon-btn gerar-fatura-btn" onClick={(e) => handleGerarFaturaClick(cliente.id, e)} title="Gerar Fatura">
+                    <FiFilePlus /> Gerar Fatura
                   </button>
                 </div>
               </li>
             ))
           )}
       </ul>
-      <Link to="/" className="back-link">&larr; Voltar ao Painel Principal</Link>
+      
     </Container>
   );
 };

@@ -7,9 +7,115 @@
     gap: 25px;
 }
 
-.detalhes-container h1 {
-    text-align: center;
+.detalhes-header-logo {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.header-logo {
+    height: 50px;
+    width: auto;
+    object-fit: contain;
+}
+
+.info-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.info-table tbody tr {
+    border-bottom: 1px solid #e9ecef;
+}
+
+.info-table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.info-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.info-table td {
+    padding: 12px 15px;
+    font-size: 1em;
+    color: #495057;
+}
+
+.info-table td:first-child {
+    width: 35%;
+    color: #212529;
+    font-weight: 500;
+    background-color: #f8f9fa;
+}
+
+.subtotal-row td:last-child {
+    font-size: 1.05em;
+    font-weight: 700;
+}
+
+.desconto-row td:last-child {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.total-row {
+    background-color: #e7f3ff;
+    border-top: 2px solid #ff9900;
+}
+
+.total-row td {
+    padding: 15px;
+    font-weight: bold;
+}
+
+.total-row td:last-child {
+    font-size: 1.3em;
+    color: #007bff;
+}
+
+.detalhes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.detalhes-header h1 {
+    flex: 1;
     color: #343a40;
+    margin: 0;
+}
+
+.btn-export-pdf {
+    background-color: #ff9900;
+    color: white;
+    padding: 10px 20px;
+    width: 140px;
+    height: 44px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: opacity 0.2s, transform 0.2s;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-export-pdf:hover {
+    opacity: 0.85;
+    transform: translateY(-2px);
+}
+
+.btn-export-pdf:active {
+    opacity: 0.7;
+    transform: translateY(0);
 }
 
 .card {

@@ -1,276 +1,174 @@
-import React, { useState, useEffect } from 'react';
-import './Form.css';
+import React, { useState } from 'react';
+import './Form.css'; //
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost/faturas/api/';
 
-const Stepper = ({ currentStep }) => {
-    const steps = ["Dados do Cliente", "Dados da Instalação", "Dados do Contrato"];
-    return (
-        <div className="form-stepper">
-            {steps.map((label, index) => (
-                <div key={label} className={`step ${index + 1 === currentStep ? 'active' : ''} ${index + 1 < currentStep ? 'completed' : ''}`}>
-                    <div className="step-indicator">{index + 1}</div>
-                    <div className="step-label">{label}</div>
-                </div>
-            ))}
+const ClienteForm = ({ integradores = [], preSelectedIds = {} }) => {
+  const [loading, setLoading] = useState(false);
+  const [feedback, setFeedback] = useState({ type: '', message: '' });
+
+  // Estado apenas com dados do CLIENTE
+  const [formData, setFormData] = useState({
+    integrador_id: preSelectedIds.integradorId || '',
+    nome: '',
+    documento: '',
+    telefone: ''
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFeedback({ type: '', message: '' });
+
+    // Validação básica
+    if (!formData.integrador_id || !formData.nome || !formData.documento) {
+      setFeedback({ type: 'error', message: 'Preencha Integrador, Nome e CPF/CNPJ.' });
+      return;
+    }
+
+    setLoading(true);
+    setFeedback({ type: 'info', message: 'Salvando cliente...' });
+
+    try {
+      const response = await fetch(`${API_BASE_URL}cadastrar_cliente.php`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Erro ao cadastrar cliente.');
+      }
+
+      // Sucesso
+      setFeedback({ 
+        type: 'success', 
+        message: `Cliente cadastrado com sucesso! (ID: ${data.cliente_id})` 
+      });
+
+      // Limpar formulário (opcional)
+      setFormData({
+        integrador_id: '',
+        nome: '',
+        documento: '',
+        telefone: ''
+      });
+
+      // Opcional: Se quiser recarregar a página após um tempo
+      // setTimeout(() => window.location.reload(), 2000);
+
+    } catch (error) {
+      setFeedback({ type: 'error', message: error.message });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="fade-in">
+      
+      {/* Exibição de Mensagens (Erro/Sucesso) */}
+      {feedback.message && (
+        <div style={{
+          padding: '12px',
+          marginBottom: '20px',
+          borderRadius: '6px',
+          color: '#fff',
+          fontWeight: '500',
+          textAlign: 'center',
+          backgroundColor: feedback.type === 'error' ? '#dc3545' : // Vermelho
+                           feedback.type === 'success' ? '#28a745' : // Verde
+                           '#17a2b8' // Azul (Info)
+        }}>
+          {feedback.message}
         </div>
-    );
-};
+      )}
 
-const RadioButtonGroup = ({ label, name, options, selectedValue, onChange }) => {
-    return (
-        <div className="form-group radio-group">
-            <span className="radio-group-label">{label}</span>
-            <div className="radio-options">
-                {options.map(option => (
-                    <label 
-                        key={option.value}
-                        className={selectedValue === option.value ? 'selected' : ''}
-                    >
-                        <input
-                            type="radio"
-                            id={`${name}-${option.value}`}
-                            name={name}
-                            value={option.value}
-                            checked={selectedValue === option.value}
-                            onChange={onChange}
-                        />
-                        <span>{option.label}</span>
-                    </label>
-                ))}
-            </div>
+      {/* --- CAMPOS DO FORMULÁRIO (Usando classes do Form.css) --- */}
+      
+      <div className="form-group"> {/* */}
+        <label htmlFor="integrador_id">Integrador Responsável:</label>
+        <select
+          id="integrador_id"
+          name="integrador_id"
+          value={formData.integrador_id}
+          onChange={handleChange}
+          disabled={loading}
+        >
+          <option value="">Selecione...</option>
+          {integradores.map((integ) => (
+            <option key={integ.id} value={integ.id}>
+              {integ.nome_do_integrador || integ.nome}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="form-row"> {/* */}
+        <div className="form-group" style={{ flex: 1 }}>
+          <label htmlFor="nome">Nome Completo:</label>
+          <input
+            type="text"
+            id="nome"
+            name="nome"
+            value={formData.nome}
+            onChange={handleChange}
+            placeholder="Ex: João da Silva"
+            disabled={loading}
+          />
         </div>
-    );
-};
 
-const ClienteForm = ({ integradores, preSelectedIds = {} }) => {
-    const [step, setStep] = useState(1);
-    const [formData, setFormData] = useState({
-        integrador_id: preSelectedIds.integradorId || '',
-        nome: '', documento: '', telefone: '',
-        endereco_instalacao: '', codigo_uc: '', tipo_de_ligacao: 'Monofásica',
-        tipo_contrato: 'Investimento',
-        tipo_instalacao: 'Beneficiária',
-        regra_faturamento: 'Depois da Taxação'
-    });
+        <div className="form-group" style={{ flex: 1 }}>
+          <label htmlFor="documento">CPF/CNPJ:</label>
+          <input
+            type="text"
+            id="documento"
+            name="documento"
+            value={formData.documento}
+            onChange={handleChange}
+            placeholder="Apenas números"
+            disabled={loading}
+          />
+        </div>
+      </div>
 
-    useEffect(() => {
-        setFormData(prev => ({
-            ...prev,
-            integrador_id: preSelectedIds.integradorId || ''
-        }));
-        setStep(1);
-    }, [preSelectedIds.integradorId]);
+      <div className="form-group">
+        <label htmlFor="telefone">Telefone (Opcional):</label>
+        <input
+          type="text"
+          id="telefone"
+          name="telefone"
+          value={formData.telefone}
+          onChange={handleChange}
+          placeholder="(00) 00000-0000"
+          disabled={loading}
+        />
+      </div>
 
-    const [errors, setErrors] = useState({});
-    const [mensagem, setMensagem] = useState({ texto: '', tipo: '' });
-    const [enviando, setEnviando] = useState(false);
+      {/* Botão de Envio */}
+      <div style={{ marginTop: '25px' }}>
+        <button 
+          type="submit" 
+          disabled={loading}
+          style={{ 
+            backgroundColor: '#ff9900', /* Laranja do tema */
+            opacity: loading ? 0.7 : 1 
+          }}
+        >
+          {loading ? 'Salvando...' : 'Cadastrar Cliente'}
+        </button>
+      </div>
 
-    const handleChange = (e) => {
-        const { id, name, value } = e.target;
-        const fieldName = name || id;
-        setFormData(prevState => ({ ...prevState, [fieldName]: value }));
-        if (errors[fieldName]) {
-            setErrors(prevErrors => ({ ...prevErrors, [fieldName]: '' }));
-        }
-    };
-
-    const validateField = (name, value) => {
-        if (!value || String(value).trim() === '') {
-            return 'Este campo é obrigatório.';
-        }
-        return '';
-    };
-
-    const handleBlur = (e) => {
-        const { id, value } = e.target;
-        const error = validateField(id, value);
-        setErrors(prevErrors => ({ ...prevErrors, [id]: error }));
-    };
-
-    const validateStep = () => {
-        let newErrors = {};
-        let isValid = true;
-        const fieldsToValidate = {
-            1: ['integrador_id', 'nome', 'documento'],
-            2: ['endereco_instalacao', 'codigo_uc', 'tipo_de_ligacao'],
-            3: ['tipo_instalacao', 'regra_faturamento']
-        };
-
-        fieldsToValidate[step].forEach(field => {
-            const error = validateField(field, formData[field]);
-            if (error) {
-                newErrors[field] = error;
-                isValid = false;
-            }
-        });
-
-        setErrors(newErrors);
-        return isValid;
-    };
-
-    const nextStep = () => {
-        if (validateStep()) {
-            setStep(prev => prev + 1);
-        }
-    };
-    const prevStep = () => setStep(prev => prev - 1);
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        if (!validateStep()) {
-            return;
-        }
-        setEnviando(true);
-        setMensagem({ texto: '', tipo: '' });
-
-        try {
-            const response = await fetch(`${API_BASE_URL}cadastrar_cliente.php`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            });
-
-            const result = await response.json();
-            if (!response.ok) {
-                throw new Error(result.message || 'Ocorreu um erro ao cadastrar.');
-            }
-            
-            setMensagem({ texto: result.message, tipo: 'success' });
-            setStep(1);
-            setFormData({
-                integrador_id: preSelectedIds.integradorId || '', nome: '', documento: '', telefone: '',
-                endereco_instalacao: '', codigo_uc: '', tipo_de_ligacao: 'Monofásica',
-                tipo_contrato: 'Investimento', tipo_instalacao: 'Beneficiária',
-                regra_faturamento: 'Depois da Taxação'
-            });
-
-        } catch (error) {
-            setMensagem({ texto: error.message, tipo: 'error' });
-        } finally {
-            setEnviando(false);
-        }
-    };
-
-    const renderStep = () => {
-        switch (step) {
-            case 1:
-                return (
-                    <fieldset className="form-section">
-                        <legend>Passo 1: Dados do Cliente</legend>
-                        <div className="form-group">
-                          <label htmlFor="integrador_id">Integrador Responsável:</label>
-                          <select id="integrador_id" value={formData.integrador_id} onChange={handleChange} onBlur={handleBlur} className={errors.integrador_id ? 'error-input' : ''} required disabled={!!preSelectedIds.integradorId}>
-                            <option value="">-- Selecione --</option>
-                            {Array.isArray(integradores) && integradores.map(integrador => (
-                              <option key={integrador.id} value={integrador.id}>{integrador.nome_do_integrador}</option>
-                            ))}
-                          </select>
-                          <div className="error-text">{errors.integrador_id}</div>
-                        </div>
-                        <div className="form-row">
-                          <div className="form-group">
-                              <label htmlFor="nome">Nome Completo:</label>
-                              <input type="text" id="nome" value={formData.nome} onChange={handleChange} onBlur={handleBlur} className={errors.nome ? 'error-input' : ''} required />
-                              <div className="error-text">{errors.nome}</div>
-                          </div>
-                          <div className="form-group">
-                              <label htmlFor="documento">CPF/CNPJ:</label>
-                              <input type="text" id="documento" value={formData.documento} onChange={handleChange} onBlur={handleBlur} className={errors.documento ? 'error-input' : ''} required />
-                              <div className="error-text">{errors.documento}</div>
-                          </div>
-                        </div>
-                        <div className="form-group">
-                          <label htmlFor="telefone">Telefone (Opcional):</label>
-                          <input type="text" id="telefone" value={formData.telefone} onChange={handleChange} />
-                          <div className="error-text"></div>
-                        </div>
-                    </fieldset>
-                );
-            case 2:
-                return (
-                    <fieldset className="form-section">
-                        <legend>Passo 2: Dados da Instalação</legend>
-                        <div className="form-group">
-                            <label htmlFor="endereco_instalacao">Endereço da Instalação:</label>
-                            <input type="text" id="endereco_instalacao" value={formData.endereco_instalacao} onChange={handleChange} onBlur={handleBlur} className={errors.endereco_instalacao ? 'error-input' : ''} required />
-                            <div className="error-text">{errors.endereco_instalacao}</div>
-                        </div>
-                        <div className="form-row">
-                          <div className="form-group">
-                              <label htmlFor="codigo_uc">Cód. Unidade Consumidora (UC):</label>
-                              <input type="text" id="codigo_uc" value={formData.codigo_uc} onChange={handleChange} onBlur={handleBlur} className={errors.codigo_uc ? 'error-input' : ''} required />
-                              <div className="error-text">{errors.codigo_uc}</div>
-                          </div>
-                          <div className="form-group">
-                              <label htmlFor="tipo_de_ligacao">Tipo de Ligação:</label>
-                              <select id="tipo_de_ligacao" value={formData.tipo_de_ligacao} onChange={handleChange} onBlur={handleBlur} className={errors.tipo_de_ligacao ? 'error-input' : ''} required>
-                                <option value="Monofásica">Monofásica</option>
-                                <option value="Bifásica">Bifásica</option>
-                                <option value="Trifásica">Trifásica</option>
-                              </select>
-                              <div className="error-text">{errors.tipo_de_ligacao}</div>
-                          </div>
-                        </div>
-                    </fieldset>
-                );
-            case 3:
-                return (
-                    <fieldset className="form-section">
-                        <legend>Passo 3: Dados do Contrato</legend>
-                        <div className="form-row">
-                            <RadioButtonGroup
-                                label="Tipo de Instalação:"
-                                name="tipo_instalacao"
-                                selectedValue={formData.tipo_instalacao}
-                                onChange={handleChange}
-                                options={[
-                                    { value: 'Beneficiária', label: 'Beneficiária' },
-                                    { value: 'Geradora', label: 'Geradora' }
-                                ]}
-                            />
-                            <RadioButtonGroup
-                                label="Regra de Faturamento:"
-                                name="regra_faturamento"
-                                selectedValue={formData.regra_faturamento}
-                                onChange={handleChange}
-                                options={[
-                                    { value: 'Depois da Taxação', label: 'Depois da Taxação' },
-                                    { value: 'Antes da Taxação', label: 'Antes da Taxação' }
-                                ]}
-                            />
-                        </div>
-                    </fieldset>
-                );
-            default:
-                return null;
-        }
-    };
-
-    return (
-        <form onSubmit={handleSubmit} noValidate>
-            <Stepper currentStep={step} />
-            {mensagem.texto && !enviando && <div className={`message ${mensagem.tipo}`}>{mensagem.texto}</div>}
-            {renderStep()}
-            <div className="form-navigation">
-                {step > 1 && (
-                    <button type="button" className="btn-secondary" onClick={prevStep}>
-                        Voltar
-                    </button>
-                )}
-                {step < 3 && (
-                    <button type="button" className="btn-blue" onClick={nextStep} style={{ marginLeft: 'auto' }}>
-                        Avançar
-                    </button>
-                )}
-                {step === 3 && (
-                    <button type="submit" className="btn-orange" disabled={enviando} style={{ marginLeft: 'auto' }}>
-                        {enviando ? 'Enviando...' : 'Cadastrar Cliente'}
-                    </button>
-                )}
-            </div>
-        </form>
-    );
+    </form>
+  );
 };
 
 export default ClienteForm;

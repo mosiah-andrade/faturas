@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, Link, useNavigate, useOutletContext } from 'react-router-dom';
 import Container from '../components/Container';
-import FaturaModal from '../components/FaturaModal';
 import './FaturasPage.css';
+import logoImg from '../assets/homolog.png';
+import pixImg from '../assets/pix.png';
 
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost/faturas/api/';
 
 const FaturasPage = () => {
     const { clienteId } = useParams();
@@ -18,7 +19,6 @@ const FaturasPage = () => {
     const [faturas, setFaturas] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [isModalOpen, setModalOpen] = useState(false);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -83,7 +83,7 @@ const FaturasPage = () => {
             const formatPercent = (v) => v != null ? `${parseInt(v)}%` : '0%';
 
             // --- NOVO CABEÇALHO ---
-            doc.addImage('/homolog.png', 'PNG', margin, 5, 25, 28);
+            doc.addImage(logoImg, 'PNG', margin, 5, 25, 28);
 
             const titleX = 80; // Posição X para o início dos títulos
             doc.setFontSize(18);
@@ -186,7 +186,7 @@ const FaturasPage = () => {
     
             doc.setFontSize(12);
             doc.text("Pague com PIX:", margin, currentY + 15);
-            doc.addImage('/pix.png', 'PNG', margin, currentY + 18, 55, 55);
+            doc.addImage(pixImg, 'PNG', margin, currentY + 18, 55, 55);
             doc.setFontSize(9);
             doc.setFont(undefined, 'bold');
             doc.text("CNPJ: 46.967.661/0001-91", margin, currentY + 78);
@@ -216,13 +216,8 @@ const FaturasPage = () => {
     if (error) return <Container><p className="error-message">{error}</p></Container>;
 
     return (
-        <>
-            <FaturaModal
-                isOpen={isModalOpen}
-                onClose={() => setModalOpen(false)}
-                onFaturaGerada={fetchData}
-                preSelectedIds={preSelectedIdsForModal}
-            />
+        <>      
+            <Link to={`/integrador/${cliente?.integrador_id || ''}`} className="back-link">&larr; Voltar </Link>
             <div className="container">
                 {cliente && (
                     <div className="cliente-header">
@@ -237,7 +232,7 @@ const FaturasPage = () => {
                 )}
                 <div className="header-actions">
                     <h2>Histórico de Faturas</h2>
-                    <button className="action-btn" onClick={() => openFaturaModal ? openFaturaModal({ clienteId: clienteId, integradorId: cliente.integrador_id }) : setModalOpen(true)}>
+                    <button className="action-btn" onClick={() => openFaturaModal({ clienteId: clienteId, integradorId: cliente.integrador_id })}>
                         + Gerar Nova Fatura
                     </button>
                 </div>
@@ -287,7 +282,7 @@ const FaturasPage = () => {
                         <p className="no-data">Nenhuma fatura encontrada para este cliente.</p>
                     )}
                 </div>
-                <Link to={`/integrador/${cliente?.integrador_id || ''}`} className="back-link">&larr; Voltar para o Integrador</Link>
+                
             </div>
         </>
     );

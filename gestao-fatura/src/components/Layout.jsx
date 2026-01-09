@@ -4,9 +4,10 @@ import Sidebar from './Sidebar';
 import FaturaModal from './FaturaModal';
 import ClienteModal from './ClienteModal';
 import IntegradorModal from './IntegradorModal';
+import InstalacaoModal from '../components/InstalacaoModal';
 import './Layout.css';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost/faturas/api/';
 
 const Layout = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -15,6 +16,8 @@ const Layout = () => {
   const [isClienteModalOpen, setClienteModalOpen] = useState(false);
   const [isIntegradorModalOpen, setIntegradorModalOpen] = useState(false);
   const [preSelectedIds, setPreSelectedIds] = useState({});
+  const [isInstalacaoModalOpen, setIsInstalacaoModalOpen] = useState(false);
+  const [instalacaoClienteId, setInstalacaoClienteId] = useState(null);
 
   const fetchIntegradores = async () => {
     try {
@@ -36,7 +39,7 @@ const Layout = () => {
 
   const handleCadastroIntegrador = () => {
     setIntegradorModalOpen(false);
-    window.location.reload(); 
+    fetchIntegradores();
   };
 
   const openFaturaModal = useCallback((ids = {}) => {
@@ -59,7 +62,17 @@ const Layout = () => {
     setPreSelectedIds({});
   }, []);
 
-  const contextValue = useMemo(() => ({ openFaturaModal, openClienteModal }), [openFaturaModal, openClienteModal]);
+  const openInstalacaoModal = useCallback(({ clienteId }) => {
+    setInstalacaoClienteId(clienteId);
+    setIsInstalacaoModalOpen(true);
+  }, []);
+
+  const closeInstalacaoModal = useCallback(() => {
+    setIsInstalacaoModalOpen(false);
+    setInstalacaoClienteId(null);
+  }, []);
+
+  const contextValue = useMemo(() => ({ openFaturaModal, openClienteModal, openInstalacaoModal }), [openFaturaModal, openClienteModal, openInstalacaoModal]);
 
   return (
     <>
@@ -80,6 +93,11 @@ const Layout = () => {
         isOpen={isIntegradorModalOpen}
         onClose={() => setIntegradorModalOpen(false)}
         onCadastroSucesso={handleCadastroIntegrador}
+      />
+      <InstalacaoModal
+        isOpen={isInstalacaoModalOpen}
+        onClose={closeInstalacaoModal}
+        clienteId={instalacaoClienteId}
       />
 
       <div className={`app-layout ${isCollapsed ? 'sidebar-collapsed' : ''}`}>

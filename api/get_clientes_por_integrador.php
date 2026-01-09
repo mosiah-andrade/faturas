@@ -20,13 +20,13 @@ try {
     
     $integradorId = $_GET['integrador_id'];
     
-    // CORREÇÃO: Adicionada a coluna i.regra_faturamento
+    // CORREÇÃO: Alterado para LEFT JOIN para mostrar clientes mesmo sem instalações
     $sql = "SELECT 
                 c.id as cliente_id, c.nome, i.id, i.codigo_uc,
                 i.tipo_contrato, i.tipo_instalacao, i.regra_faturamento
             FROM clientes c
-            JOIN instalacoes i ON c.id = i.cliente_id
-            WHERE i.integrador_id = ?";
+            LEFT JOIN instalacoes i ON c.id = i.cliente_id
+            WHERE c.integrador_id = ?";
             
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$integradorId]);
