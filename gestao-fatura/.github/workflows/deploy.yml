@@ -1,0 +1,34 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches:
+      - main  # ou master
+
+jobs:
+  web-deploy:
+    name: 🎉 Deploy
+    runs-on: ubuntu-latest
+    steps:
+    - name: 🚚 Get latest code
+      uses: actions/checkout@v4
+
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: 📦 Install dependencies
+      run: npm install
+
+    - name: 🔨 Build Project
+      run: npm run build # Isso gera a pasta dist
+
+    - name: 📂 Sync files
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      with:
+        server: ftp://147.93.14.203
+        username: u103839941.faturas.homologsolar.com
+        password: Homo1007@
+        local-dir: ./dist/ # A pasta que será enviada
+        server-dir: ./public_html/ # Onde ficará na Hostinger
