@@ -3,7 +3,7 @@ name: Deploy to Hostinger
 on:
   push:
     branches:
-      - main  # ou master
+      - main
 
 jobs:
   web-deploy:
@@ -22,18 +22,29 @@ jobs:
       run: npm install
       working-directory: ./gestao-fatura
 
-    - name: 🔨 Build Project
-      run: npm run build # Isso gera a pasta dist
+    - name: 🔨 Build Frontend
+      run: npm run build
       working-directory: ./gestao-fatura
 
+    # --- NOVO PASSO: Juntar Frontend + Backend ---
+    - name: 📂 Prepare files for deploy
+      run: |
+        mkdir deploy_package
+        # 1. Copia o site (Frontend) para a raiz do pacote
+        cp -r gestao-fatura/dist/* deploy_package/
+        # 2. Copia a pasta da API
+        cp -r api deploy_package/api
+        # 3. Copia e renomeia o config de produção para config.php
+        cp config.prod.php deploy_package/config.php
+
     - name: 📂 Sync files
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5 # Certifique-se de usar a versão mais recente
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: ./gestao-fatura/dist/
-        server-dir: ./
-        protocol: ftps             # Força o uso de FTP Seguro (Importante na Hostinger)
-        port: 21                   # Garante a porta padrão
-        security: loose            # Aceita certificados SSL da Hostinger sem reclamar
+        local-dir: ./deploy_package/  # <--- Enviamos a pasta combinada
+        server-dir: ./                # <--- Para a raiz da Hostinger
+        protocol: ftps
+        port: 21
+        security: loose
