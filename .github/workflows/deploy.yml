@@ -33,7 +33,7 @@ jobs:
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./gestao-fatura/dist/
-        server-dir: ./public_html/
+        server-dir: ./
         protocol: ftps             # Força o uso de FTP Seguro (Importante na Hostinger)
         port: 21                   # Garante a porta padrão
         security: loose            # Aceita certificados SSL da Hostinger sem reclamar
