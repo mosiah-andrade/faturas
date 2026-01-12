@@ -27,8 +27,8 @@ jobs:
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
-        server: ftp://147.93.14.203
-        username: u103839941.faturas.homologsolar.com
-        password: Homo1007@
+        server: ${{ secrets.FTP_SERVER }}
+        username: ${{ secrets.FTP_USERNAME }}
+        password: ${{ secrets.FTP_PASSWORD }}
         local-dir: ./dist/ # A pasta que será enviada
         server-dir: ./public_html/ # Onde ficará na Hostinger
