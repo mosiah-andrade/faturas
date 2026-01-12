@@ -30,13 +30,13 @@ jobs:
     - name: 📂 Prepare files for deploy
       run: |
         mkdir deploy_package
-        # 1. Copia o site (Frontend) para a raiz do pacote
-        cp -r gestao-fatura/dist/* deploy_package/
-        # 2. Copia a pasta da API
-        cp -r api deploy_package/api
-        # 3. Copia e renomeia o config de produção para config.php
+        # Copia TUDO da pasta dist, incluindo .htaccess
+        cp -r gestao-fatura/dist/. deploy_package/
+        
+        # Copia a API e Config
+        cp -r api deploy_package/
         cp config.prod.php deploy_package/config.php
-
+        
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
