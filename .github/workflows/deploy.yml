@@ -25,10 +25,13 @@ jobs:
       run: npm run build # Isso gera a pasta dist
 
     - name: 📂 Sync files
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5 # Certifique-se de usar a versão mais recente
       with:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: ./dist/ # A pasta que será enviada
-        server-dir: ./public_html/ # Onde ficará na Hostinger
+        local-dir: ./dist/
+        server-dir: ./public_html/
+        protocol: ftps             # Força o uso de FTP Seguro (Importante na Hostinger)
+        port: 21                   # Garante a porta padrão
+        security: loose            # Aceita certificados SSL da Hostinger sem reclamar
