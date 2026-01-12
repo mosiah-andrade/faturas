@@ -20,9 +20,11 @@ jobs:
 
     - name: 📦 Install dependencies
       run: npm install
+      working-directory: ./gestao-fatura
 
     - name: 🔨 Build Project
       run: npm run build # Isso gera a pasta dist
+      working-directory: ./gestao-fatura
 
     - name: 📂 Sync files
       uses: SamKirkland/FTP-Deploy-Action@v4.3.5 # Certifique-se de usar a versão mais recente
@@ -30,7 +32,7 @@ jobs:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: ./dist/
+        local-dir: ./gestao-fatura/dist/
         server-dir: ./public_html/
         protocol: ftps             # Força o uso de FTP Seguro (Importante na Hostinger)
         port: 21                   # Garante a porta padrão
